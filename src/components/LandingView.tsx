@@ -12,8 +12,15 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
       {/* Header */}
       <header className="border-b border-white/5 bg-[#0A0A0A]/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="font-sans text-xl font-extralight tracking-[0.15em] text-[#F9F6EE]/90">
-            HINDTRADE AI
+          <div className="flex items-center space-x-3.5">
+            <img 
+              src="/images/LOGO.png" 
+              alt="Konark Chakra" 
+              className="h-8 w-8 invert brightness-[1.5] contrast-[1.2] sepia-[0.8] hue-rotate-[-10deg] saturate-[1.5] object-contain"
+            />
+            <div className="font-sans text-xl font-extralight tracking-[0.18em] text-[#F9F6EE]/90">
+              HINDTRADE AI
+            </div>
           </div>
           <nav className="hidden md:flex items-center space-x-10 text-sm font-medium text-slate-400">
             <a href="#engine" className="hover:text-[#D4CAA3] transition-colors">Engine</a>
