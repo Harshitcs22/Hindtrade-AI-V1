@@ -1,12 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, CheckCircle, Shield, ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle, Shield, ArrowUpRight, Sparkles, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LandingView({ onViewDashboard }: { onViewDashboard: () => void }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[#F9F6EE] font-sans flex flex-col antialiased">
       {/* Header */}
@@ -25,7 +31,11 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           <nav className="hidden md:flex items-center space-x-10 text-sm font-medium text-slate-400">
             <a href="#engine" className="hover:text-[#D4CAA3] transition-colors">Engine</a>
             <a href="#network" className="hover:text-[#D4CAA3] transition-colors">Network</a>
+            <Link href="/audit-vault" className="hover:text-[#D4CAA3] transition-colors font-semibold text-[#D4CAA3]">Audit Vault</Link>
             <a href="#docs" className="hover:text-[#D4CAA3] transition-colors">Docs</a>
+            <Link href="/pitch" className="border border-white/10 hover:border-[#D4CAA3] px-3.5 py-1.5 text-xs font-semibold tracking-wider text-slate-300 hover:text-[#D4CAA3] bg-transparent transition-all duration-300 uppercase">
+              Institutional Pitch
+            </Link>
           </nav>
           <Button
             onClick={onViewDashboard}
@@ -48,10 +58,16 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-12 leading-relaxed font-sans font-light">
             HindTrade AI is establishing the digital trust layer for global SMEs. We provide the autonomous solution that secures every shipment with verified documentation, classifications, and eliminates customs liability unifying trust and compliance before your freight moves.
           </p>
-          <div className="flex justify-center">
-            <Button className="bg-[#D4CAA3] text-[#0A0A0A] hover:bg-[#c5b992] font-semibold text-base px-10 py-6 rounded-none transition-all hover:scale-[1.02]">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#D4CAA3] text-[#0A0A0A] hover:bg-[#c5b992] font-semibold text-base px-10 py-6 rounded-none transition-all hover:scale-[1.02]"
+            >
               Request Access
             </Button>
+            <Link href="/audit-vault" className="border border-[#D4CAA3]/30 hover:border-[#D4CAA3] text-[#D4CAA3] hover:bg-[#D4CAA3]/5 font-semibold text-base px-10 py-4 rounded-none transition-all duration-300 flex items-center justify-center">
+              Access Audit Vault ↗
+            </Link>
           </div>
 
           {/* Narrative Text */}
@@ -602,7 +618,10 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <button className="bg-[#F9F6EE] text-[#0A0A0A] hover:bg-white font-sans font-medium text-sm tracking-[0.1em] uppercase px-10 py-5 rounded-sm transition-all shadow-[0_0_20px_rgba(212,202,163,0.15)] hover:scale-[1.02]">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#F9F6EE] text-[#0A0A0A] hover:bg-white font-sans font-medium text-sm tracking-[0.1em] uppercase px-10 py-5 rounded-sm transition-all shadow-[0_0_20px_rgba(212,202,163,0.15)] hover:scale-[1.02]"
+            >
               GET EARLY ACCESS ↗
             </button>
             <button className="text-[#F9F6EE] hover:text-[#D4CAA3] font-sans font-light text-sm tracking-wider uppercase border-b border-transparent hover:border-[#D4CAA3] transition-all pb-1">
@@ -635,6 +654,118 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
             </div>
           </div>
         </div>
+        <AnimatePresence>
+          {isModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[15px] p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-[#000000] border border-[#DEFF9A]/20 p-8 md:p-10 max-w-lg w-full relative shadow-[0_0_50px_rgba(222,255,154,0.05)]"
+              >
+                <button 
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setIsSubmitted(false);
+                  }}
+                  className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {!isSubmitted ? (
+                  <>
+                    <h3 className="text-2xl md:text-3xl font-serif text-[#F9F6EE] mb-2 tracking-tight">
+                      Secure Your Status as a Founding Member
+                    </h3>
+                    <p className="text-xs md:text-sm text-zinc-400 font-sans tracking-wide mb-8">
+                      Join the elite 20 exporters defining the new standard of Indian Trade.
+                    </p>
+
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setIsSubmitting(true);
+                        setTimeout(() => {
+                          setIsSubmitting(false);
+                          setIsSubmitted(true);
+                        }, 2000);
+                      }}
+                      className="space-y-6"
+                    >
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Full Name</label>
+                        <input 
+                          type="text" 
+                          required
+                          className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors"
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Organization / MSME Name</label>
+                        <input 
+                          type="text" 
+                          required
+                          className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors"
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Professional Email</label>
+                        <input 
+                          type="email" 
+                          required
+                          className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors"
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Primary Export Category</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="e.g., Sports Goods, Textiles"
+                          className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors placeholder-zinc-700"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full bg-[#DEFF9A] text-[#000000] font-sans font-bold text-xs tracking-[0.2em] uppercase py-4 mt-4 shadow-[0_0_20px_rgba(222,255,154,0.3)] hover:shadow-[0_0_30px_rgba(222,255,154,0.5)] transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? "PROCESSING" : "RESERVE MY SPOT"}
+                      </button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="py-12 flex flex-col items-center text-center space-y-6">
+                    <div className="w-12 h-12 rounded-full bg-[#DEFF9A]/10 border border-[#DEFF9A]/30 flex items-center justify-center text-[#DEFF9A]">
+                      <CheckCircle className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-xl font-serif text-[#F9F6EE]">Access Granted</h4>
+                      <div className="relative pt-4 flex flex-col items-center">
+                        <div className="text-[10px] font-sans tracking-[0.25em] text-[#DEFF9A] uppercase font-bold animate-pulse">
+                          Identity Verified
+                        </div>
+                        <div className="text-[9px] font-sans tracking-[0.2em] text-zinc-500 uppercase mt-1">
+                          Priority Queue Assigned
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </footer>
     </div>
   );

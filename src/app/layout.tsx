@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, Cormorant_Garamond, Urbanist } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,9 +12,26 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["300", "400"],
+});
+
+const urbanist = Urbanist({
+  variable: "--font-urbanist",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "HindTrade AI - Sovereign Trade OS",
   description: "Agent-as-a-Service Sovereign Trade OS for global exporters.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "HindTrade AI",
+  },
 };
 
 export default function RootLayout({
@@ -25,9 +42,22 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfair.variable} dark h-full antialiased`}
+      className={`${inter.variable} ${playfair.variable} ${cormorant.variable} ${urbanist.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-background text-foreground">{children}</body>
+      <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
+        {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
+      </body>
     </html>
   );
 }
