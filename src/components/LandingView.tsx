@@ -2,13 +2,16 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, CheckCircle, Shield, ArrowUpRight, Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FirmRegistrationModal } from "@/components/onboarding/FirmRegistrationModal";
 
 export default function LandingView({ onViewDashboard }: { onViewDashboard: () => void }) {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -37,12 +40,20 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
               Institutional Pitch
             </Link>
           </nav>
-          <Button
-            onClick={onViewDashboard}
-            className="bg-[#D4CAA3] text-[#0A0A0A] hover:bg-[#c5b992] font-semibold rounded-none px-6 h-11 text-sm transition-all hover:scale-[1.02]"
-          >
-            Deploy Agent
-          </Button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/auth/login"
+              className="hidden md:block text-xs font-mono tracking-widest text-zinc-500 hover:text-[#D4CAA3] transition-colors uppercase"
+            >
+              Sign In
+            </Link>
+            <Button
+              onClick={() => router.push('/auth/signup')}
+              className="bg-[#D4CAA3] text-[#0A0A0A] hover:bg-[#c5b992] font-semibold rounded-none px-6 h-11 text-sm transition-all hover:scale-[1.02]"
+            >
+              Deploy Agent
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -60,10 +71,10 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => router.push('/auth/signup')}
               className="bg-[#D4CAA3] text-[#0A0A0A] hover:bg-[#c5b992] font-semibold text-base px-10 py-6 rounded-none transition-all hover:scale-[1.02]"
             >
-              Request Access
+              Register With Us
             </Button>
             <Link href="/audit-vault" className="border border-[#D4CAA3]/30 hover:border-[#D4CAA3] text-[#D4CAA3] hover:bg-[#D4CAA3]/5 font-semibold text-base px-10 py-4 rounded-none transition-all duration-300 flex items-center justify-center">
               Access Audit Vault ↗
@@ -767,6 +778,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           )}
         </AnimatePresence>
       </footer>
+
     </div>
   );
 }
