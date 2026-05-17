@@ -55,11 +55,11 @@ export function ExporterCard({ onOpenAI }: { onOpenAI: () => void }) {
         <div className="border-y border-white/5 py-3 mb-4 font-sans text-[10px] font-light tracking-widest flex flex-col gap-2 px-1">
           <div className="flex justify-between items-center">
             <span className="text-zinc-500 uppercase text-[8px]">DEALS IN</span>
-            <span className="text-zinc-300 font-normal text-right">{firmDetails.dealsIn}</span>
+            <span className="text-zinc-300 font-normal text-right">{firmDetails.deals_in}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-zinc-500 uppercase text-[8px]">MARKETS</span>
-            <span className="text-zinc-300 font-normal text-right">{firmDetails.markets}</span>
+            <span className="text-zinc-300 font-normal text-right">{Object.keys(firmDetails.global_presence || {}).length} COUNTRIES</span>
           </div>
         </div>
 
@@ -71,11 +71,11 @@ export function ExporterCard({ onOpenAI }: { onOpenAI: () => void }) {
           </div>
           <div>
             <div className="text-zinc-500 text-[8px] tracking-[0.2em] uppercase mb-1 font-sans">EXPERIENCE</div>
-            <div className="text-white/90 text-sm md:text-base font-sans font-medium">{firmDetails.yearsInTrade} Yrs</div>
+            <div className="text-white/90 text-sm md:text-base font-sans font-medium">{firmDetails.years_in_trade} Yrs</div>
           </div>
           <div>
             <div className="text-zinc-500 text-[8px] tracking-[0.2em] uppercase mb-1 font-sans">NET WORTH</div>
-            <div className="text-[#D4CAA3] text-sm md:text-base font-sans font-medium">{firmDetails.netWorth}</div>
+            <div className="text-[#D4CAA3] text-sm md:text-base font-sans font-medium">{firmDetails.net_worth}</div>
           </div>
         </div>
 
@@ -92,7 +92,7 @@ export function ExporterCard({ onOpenAI }: { onOpenAI: () => void }) {
         {/* Footer & CTA */}
         <div className="flex items-center justify-between pt-5 border-t border-white/5">
           <div className="text-zinc-500 text-[8px] font-sans tracking-[0.15em] uppercase">
-            UDIN: {firmDetails.udin} <span className="mx-1 text-zinc-700">|</span> <span className="text-[#D4CAA3]/90 font-normal">VERIFIED</span>
+            ID: {firmDetails.id || "N/A"} <span className="mx-1 text-zinc-700">|</span> <span className="text-[#D4CAA3]/90 font-normal">VERIFIED</span>
           </div>
           <button 
             onClick={onOpenAI}

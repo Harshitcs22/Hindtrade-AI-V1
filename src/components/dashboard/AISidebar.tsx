@@ -65,7 +65,7 @@ export function AISidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             activeProduct,
             firmName: firmDetails.name,
             trustScore,
-            yearsInTrade: firmDetails.yearsInTrade
+            yearsInTrade: firmDetails.years_in_trade
           }
         }),
       });

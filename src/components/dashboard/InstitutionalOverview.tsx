@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Factory, Users, Boxes, Gauge, ShieldCheck, Award } from "lucide-react";
+import { Factory, Users, Boxes, Gauge, ShieldCheck, Award, Lock } from "lucide-react";
 import { useProductStore } from "@/lib/store";
 
 // ── Trust badge icons ────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ function EditableText({
 }
 
 export function InstitutionalOverview() {
-  const { firmDetails, documents, isEditMode } = useProductStore();
+  const { firmDetails, documents, isEditMode, updateProfileStats } = useProductStore();
 
   // ── Local editable state for philosophy text ──────────────────────────────
   const [quote, setQuote] = useState(
@@ -76,17 +76,71 @@ export function InstitutionalOverview() {
     "Trade is trust. Trust is traceability. — HindTrade Sovereign Protocol"
   );
 
-  // ── Local editable state for factory stats ────────────────────────────────
-  const [stats, setStats] = useState(DEFAULT_STATS);
-  const [utilization, setUtilization] = useState("87");
-
-  const updateStat = (id: string, newValue: string) => {
-    setStats((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, value: newValue } : s))
-    );
+  const currentDomestic = firmDetails?.domestic_presence || {};
+  const factoryMetrics = (currentDomestic as any).factory_metrics || {
+    factory_area: "25,000 SQ. FT.",
+    skilled_workers: "120+",
+    monthly_capacity: "15,000 UNITS",
+    quality_yield: "99.2%",
+    machine_utilization: "87%"
   };
 
-  const utilizationNum = Math.min(parseInt(utilization) || 0, 100);
+  const handleFactoryMetricBlur = async (key: string, value: string) => {
+    const updatedDomestic = {
+      ...currentDomestic,
+      factory_metrics: {
+        ...factoryMetrics,
+        [key]: value.trim()
+      }
+    };
+    try {
+      await updateProfileStats({ domestic_presence: updatedDomestic });
+    } catch (err) {
+      console.error("Failed to commit factory telemetry patch stream:", err);
+    }
+  };
+
+  const stats = [
+    {
+      id: "area",
+      label: "Factory Area",
+      value: factoryMetrics.factory_area,
+      fill: 72,
+      icon: Factory,
+      color: "#D4CAA3",
+      field: "factory_area"
+    },
+    {
+      id: "workers",
+      label: "Skilled Workers",
+      value: factoryMetrics.skilled_workers,
+      fill: 60,
+      icon: Users,
+      color: "#22D3EE",
+      field: "skilled_workers"
+    },
+    {
+      id: "capacity",
+      label: "Monthly Capacity",
+      value: factoryMetrics.monthly_capacity,
+      fill: 85,
+      icon: Boxes,
+      color: "#DEFF9A",
+      field: "monthly_capacity"
+    },
+    {
+      id: "yield",
+      label: "Quality Yield",
+      value: factoryMetrics.quality_yield,
+      fill: parseFloat(factoryMetrics.quality_yield) || 99.2,
+      icon: Gauge,
+      color: "#D4CAA3",
+      field: "quality_yield",
+      isAudited: true
+    },
+  ];
+
+  const utilizationNum = parseInt(factoryMetrics.machine_utilization) || 87;
 
   return (
     <section className="py-16 px-8 md:px-12 bg-[#0A0A0A] break-inside-avoid">
@@ -166,62 +220,70 @@ export function InstitutionalOverview() {
 
         {/* Right: Factory Stats Terminal (2 cols) */}
         <div className="lg:col-span-2">
-          <div className="bg-[#0D0D0D] border border-white/[0.06] overflow-hidden">
+          <div className="w-full bg-zinc-950/40 backdrop-blur-md p-6 md:p-8 border border-white/5 shadow-[0_0_20px_rgba(212,202,163,0.01)] transition-all duration-300 ease-out hover:scale-[1.02] hover:border-[#D4CAA3]/15 hover:shadow-[0_0_25px_rgba(212,202,163,0.15)] rounded-none">
             {/* Terminal header */}
-            <div className="flex items-center gap-2.5 px-7 py-4 border-b border-white/5 bg-[#111111]">
+            <div className="flex items-center gap-2.5 pb-4 border-b border-white/5 bg-transparent">
               <div className="w-2.5 h-2.5 rounded-full bg-[#DEFF9A]" />
               <div className="w-2.5 h-2.5 rounded-full bg-[#D4CAA3]" />
               <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
-              <span className="text-[10px] font-serif text-zinc-500 tracking-[0.2em] uppercase ml-2">
+              <span className="text-[10px] font-sans tracking-[0.2em] uppercase ml-2 text-zinc-500 font-semibold">
                 Factory Terminal
               </span>
             </div>
 
             {/* Stats with individual bars */}
             <div className="divide-y divide-white/[0.04]">
-              {stats.map(({ id, label, value, fill, icon: Icon, color }, idx) => (
+              {stats.map(({ id, label, value, fill, icon: Icon, color, field, isAudited }, idx) => (
                 <motion.div
                   key={id}
                   initial={{ opacity: 0, x: -8 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
-                  className="px-7 py-5 group hover:bg-white/[0.02] transition-colors"
+                  className="py-5 group hover:bg-white/[0.02] transition-colors"
                 >
                   {/* Label + Value row */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <Icon className="w-4 h-4 text-zinc-600 group-hover:text-[#D4CAA3] transition-colors" />
-                      <span className="text-xs font-serif tracking-[0.15em] text-zinc-400 uppercase">
+                      <span className="font-sans text-[9px] tracking-[0.22em] text-zinc-500 uppercase font-semibold block">
                         {label}
                       </span>
                     </div>
-                    {isEditMode ? (
+                    {isEditMode && !isAudited ? (
                       <input
                         defaultValue={value}
-                        onBlur={(e) => updateStat(id, e.target.value.trim())}
-                        className="bg-transparent border-b border-[#D4CAA3]/30 outline-none font-serif text-base font-semibold tracking-wide text-right w-32 focus:border-[#D4CAA3] transition-colors"
-                        style={{ color }}
+                        onBlur={(e) => handleFactoryMetricBlur(field, e.target.value.trim())}
+                        className="bg-transparent border-b border-[#D4CAA3]/30 outline-none font-sans text-xs md:text-sm text-zinc-100 font-bold tracking-wider uppercase text-right w-32 focus:border-[#D4CAA3] transition-colors"
                       />
                     ) : (
-                      <span
-                        className="font-serif text-base font-semibold tracking-wide"
-                        style={{ color }}
-                      >
+                      <span className="font-sans text-xs md:text-sm text-zinc-100 font-bold tracking-wider uppercase flex items-center gap-1.5">
                         {value}
+                        {isAudited && (
+                          <span className="text-zinc-500 font-sans text-[9px] tracking-wider uppercase flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" /> [✓ AUDITED LEDGER]
+                          </span>
+                        )}
                       </span>
                     )}
                   </div>
 
                   {/* Progress bar */}
-                  <div className="h-1.5 bg-white/[0.04] overflow-hidden relative">
+                  <div className="h-[2px] bg-zinc-900 w-full relative mt-3">
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: `${fill}%` }}
                       transition={{ duration: 1.2, ease: "easeOut", delay: idx * 0.1 + 0.2 }}
                       viewport={{ once: true }}
-                      className="h-full absolute left-0 top-0"
-                      style={{ backgroundColor: color, opacity: 0.7 }}
+                      className="h-full absolute left-0 top-0 bg-zinc-400"
+                    />
+                    {/* Micro-glow terminating head element */}
+                    <motion.div
+                      initial={{ left: 0 }}
+                      whileInView={{ left: `${fill}%` }}
+                      transition={{ duration: 1.2, ease: "easeOut", delay: idx * 0.1 + 0.2 }}
+                      viewport={{ once: true }}
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#D4CAA3] shadow-[0_0_8px_rgba(212,202,163,1)]"
                     />
                   </div>
                 </motion.div>
@@ -229,33 +291,32 @@ export function InstitutionalOverview() {
             </div>
 
             {/* Machine Utilization — featured metric */}
-            <div className="px-7 py-6 border-t border-white/[0.06] bg-[#0C0C0C]">
+            <div className="py-6 border-t border-white/[0.06] bg-transparent">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-serif tracking-[0.15em] text-zinc-400 uppercase">
+                <span className="font-sans text-[9px] tracking-[0.22em] text-zinc-500 uppercase font-semibold block">
                   Machine Utilization
                 </span>
-                {isEditMode ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      defaultValue={utilization}
-                      onBlur={(e) => setUtilization(e.target.value.trim())}
-                      className="bg-transparent border-b border-[#D4CAA3]/30 outline-none font-serif text-lg font-bold text-[#D4CAA3] text-right w-12 focus:border-[#D4CAA3] transition-colors"
-                    />
-                    <span className="font-serif text-lg font-bold text-[#D4CAA3]">%</span>
-                  </div>
-                ) : (
-                  <span className="font-serif text-lg font-bold text-[#D4CAA3]">
-                    {utilizationNum}%
+                <span className="font-sans text-xs md:text-sm text-zinc-100 font-bold tracking-wider uppercase flex items-center gap-1.5">
+                  {utilizationNum}%
+                  <span className="text-zinc-500 font-sans text-[9px] tracking-wider uppercase flex items-center gap-1">
+                    <Lock className="w-2.5 h-2.5" /> [✓ AUDITED LEDGER]
                   </span>
-                )}
+                </span>
               </div>
-              <div className="h-2 bg-white/[0.04] overflow-hidden relative">
+              <div className="h-[2px] bg-zinc-900 w-full relative mt-3">
                 <motion.div
                   initial={{ width: 0 }}
                   whileInView={{ width: `${utilizationNum}%` }}
                   transition={{ duration: 1.6, ease: "easeOut", delay: 0.5 }}
                   viewport={{ once: true }}
-                  className="h-full bg-gradient-to-r from-[#D4CAA3] to-[#DEFF9A]"
+                  className="h-full absolute left-0 top-0 bg-zinc-400"
+                />
+                <motion.div
+                  initial={{ left: 0 }}
+                  whileInView={{ left: `${utilizationNum}%` }}
+                  transition={{ duration: 1.6, ease: "easeOut", delay: 0.5 }}
+                  viewport={{ once: true }}
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#D4CAA3] shadow-[0_0_8px_rgba(212,202,163,1)]"
                 />
               </div>
             </div>
@@ -264,41 +325,46 @@ export function InstitutionalOverview() {
       </div>
 
       {/* ── TRUST BADGES ROW ── */}
-      <div className="mt-10 flex items-center flex-wrap gap-4">
-        <span className="text-[9px] font-mono tracking-[0.25em] text-zinc-700 uppercase mr-2">
-          Trust Anchors:
+      <div className="mt-10 flex flex-wrap items-center gap-y-4 divide-x divide-white/5 border border-white/5 bg-[#0D0D0D] px-6 py-4 rounded-none">
+        <span className="text-[9px] font-sans tracking-[0.25em] text-zinc-500 uppercase mr-4">
+          Trust Anchors
         </span>
-        {TRUST_BADGES.map(({ id, label, icon: Icon, status }, idx) => {
-          // Check if this badge matches a real document
-          const realDoc = documents.find(
-            d => d.name.toLowerCase().includes(id) ||
-                 d.name.toLowerCase().includes(label.toLowerCase())
-          );
-          const isVerified = realDoc
-            ? (realDoc.status === "VERIFIED" || realDoc.status === "verified")
-            : status === "VERIFIED";
+        {TRUST_BADGES.map(({ id, label, icon: Icon }, idx) => {
+          let isVerified = false;
+          const isIec = id === "iec";
+
+          if (id === "iec") {
+            isVerified = String(firmDetails.iec_status).toUpperCase() === "VERIFIED";
+          } else if (id === "gst" || id === "msme") {
+            const hasDoc = documents.some(
+              d => d.name.toLowerCase().includes(id) &&
+                   ["VERIFIED", "ACTIVE"].includes(String(d.status).toUpperCase())
+            );
+            isVerified = hasDoc || firmDetails.identity_anchored === true;
+          } else if (id === "iso") {
+            isVerified = documents.some(
+              d => d.name.toLowerCase().includes("iso") &&
+                   ["VERIFIED", "ACTIVE"].includes(String(d.status).toUpperCase())
+            );
+          }
 
           return (
-            <motion.div
+            <div
               key={id}
-              initial={{ opacity: 0, y: 8 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.08 }}
-              viewport={{ once: true }}
-              className={`flex items-center gap-2 px-4 py-2.5 border transition-all ${
-                isVerified
-                  ? "border-[#D4CAA3]/20 bg-[#D4CAA3]/[0.04] hover:border-[#D4CAA3]/40"
-                  : "border-white/5 bg-white/[0.02]"
-              }`}
+              className="flex items-center gap-2 px-4 py-1"
             >
               <Icon className={`w-3.5 h-3.5 ${isVerified ? "text-[#D4CAA3]" : "text-zinc-600"}`} />
-              <span className={`text-[10px] font-mono tracking-widest uppercase ${
-                isVerified ? "text-[#D4CAA3]" : "text-zinc-600"
-              }`}>
+              <span className="font-sans text-[10px] tracking-[0.2em] font-semibold uppercase text-zinc-300">
                 {label}
               </span>
-              {isVerified && <div className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A]" />}
-            </motion.div>
+              {isVerified && (
+                <div
+                  className={`h-1.5 w-1.5 rounded-full bg-[#D4CAA3] shadow-[0_0_8px_rgba(212,202,163,1)] ${
+                    isIec ? "animate-pulse" : ""
+                  }`}
+                />
+              )}
+            </div>
           );
         })}
       </div>

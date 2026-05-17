@@ -1,11 +1,16 @@
 "use client";
 
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ProductCard } from "./ProductCard";
 import { useProductStore } from "@/lib/store";
 
 export function ProductGrid({ onManage }: { onManage?: () => void }) {
-  const { inventory, setActiveProduct, isEditMode } = useProductStore();
+  const { firmDetails, setActiveProduct, isEditMode } = useProductStore();
+  
+  // Bind directly to firmDetails.products or fallback to empty array
+  const products = firmDetails.products || [];
+  const isEmpty = !products || products.length === 0;
 
   return (
     <section className="py-16 px-8 md:px-12 bg-[#050505]">
@@ -20,7 +25,7 @@ export function ProductGrid({ onManage }: { onManage?: () => void }) {
         </div>
         <div className="flex items-center gap-6">
           <div className="text-zinc-700 font-mono text-[9px] tracking-widest uppercase text-right">
-            {inventory.length} ASSETS ACTIVE<br/>
+            {products.length} ASSETS ACTIVE<br/>
             SOVEREIGN SKU MGMT
           </div>
           {isEditMode && (
@@ -34,15 +39,44 @@ export function ProductGrid({ onManage }: { onManage?: () => void }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {inventory.map((product) => (
-          <ProductCard 
-            key={product.id} 
-            product={product} 
-            onClickAudit={() => setActiveProduct(product.id)} 
-          />
-        ))}
-      </div>
+      {/* ── EMPTY STATE ─────────────────────────────────────────────────── */}
+      {isEmpty ? (
+        <div className="border-2 border-dashed border-white/5 rounded-lg p-12 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-sm font-mono text-zinc-600 tracking-[0.15em]">
+              // NO ACTIVE ASSETS INGESTED IN LOGISTICS TERMINAL
+            </div>
+            <div className="text-xs text-zinc-700 mt-2">
+              {isEditMode ? "Click 'Manage Inventory' to add products" : "No products available yet"}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ── DYNAMIC PRODUCT GRID ────────────────────────────────────────── */
+        <AnimatePresence mode="popLayout">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {products.map((product, idx) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{
+                  type: "spring",
+                  damping: 24,
+                  stiffness: 200,
+                  delay: idx * 0.05,
+                }}
+              >
+                <ProductCard
+                  product={product}
+                  onClickAudit={() => setActiveProduct(product.id)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </AnimatePresence>
+      )}
     </section>
   );
 }

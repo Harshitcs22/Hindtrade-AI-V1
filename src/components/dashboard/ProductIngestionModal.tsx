@@ -52,7 +52,7 @@ const STEP_META = [
 ];
 
 export function ProductIngestionModal({ isOpen, onClose, firmId }: Props) {
-  const { inventory } = useProductStore();
+  const { inventory, addProductToInventory } = useProductStore();
 
   // ── Step 1 state ──────────────────────────────────────────────────────────
   const [name, setName] = useState("");
@@ -117,39 +117,49 @@ export function ProductIngestionModal({ isOpen, onClose, firmId }: Props) {
     return true;
   };
 
-  // ── Finalize: INSERT to Supabase ──────────────────────────────────────────
+  // ── Finalize: INSERT to Supabase via store action ───────────────────────
   const handleFinalize = async () => {
     if (!firmId || isSubmitting) return;
     setError(null);
     setIsSubmitting(true);
 
-    const journeyPayload = journeySteps
-      .filter((j) => j.trim())
-      .map((title, idx) => ({ step: idx + 1, title, location: "Jalandhar, IN" }));
-
     try {
-      const { error: insertError } = await supabase.from("products").insert([
-        {
-          firm_id: firmId,
-          name: name.trim(),
-          hsn_code: lockedHSN,
-          material: materials.filter((m) => m.trim()),
-          journey: journeyPayload,
-          image_url: imageUrl.trim() || null,
-          audit_trace: `Classified under HSN ${lockedHSN} per GRI Rule 1 — ${category} goods.`,
-        },
-      ]);
+      // ── Serialize materials to JSONB structure ──────────────────────────
+      const materialPayload = materials
+        .filter((m) => m.trim())
+        .map((material, idx) => ({
+          index: idx,
+          name: material.trim(),
+          category: 'raw_material',
+        }));
 
-      if (insertError) throw insertError;
+      // ── Serialize journey to JSONB array of milestone objects ────────────
+      const journeyPayload = journeySteps
+        .filter((j) => j.trim())
+        .map((title, idx) => ({
+          step: idx + 1,
+          title: title.trim(),
+          location: 'Jalandhar, IN',
+          timestamp: new Date().toISOString(),
+        }));
 
-      // Refresh inventory in store
-      const { fetchFirmData, firmDetails } = useProductStore.getState();
-      if (firmDetails.slug) await fetchFirmData(firmDetails.slug);
+      // ── Call store action with normalized payload ───────────────────────
+      await addProductToInventory({
+        name: name.trim(),
+        hsn_code: lockedHSN,
+        material: materialPayload,
+        journey: journeyPayload,
+        image_url: imageUrl.trim() || null,
+        audit_trace: `Classified under HSN ${lockedHSN} per GRI Rule 1 — ${category} goods.`,
+      });
 
       setIsSuccess(true);
-      setTimeout(() => { reset(); onClose(); }, 2200);
+      setTimeout(() => {
+        reset();
+        onClose();
+      }, 2200);
     } catch (err: any) {
-      setError(err.message || "Failed to add product. Please try again.");
+      setError(err.message || 'Failed to add product. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -426,7 +436,10 @@ export function ProductIngestionModal({ isOpen, onClose, firmId }: Props) {
                       className="bg-[#D4CAA3] text-[#0A0A0A] font-bold text-xs tracking-[0.2em] uppercase px-8 py-3 flex items-center gap-2 hover:bg-white transition-colors disabled:opacity-40 group"
                     >
                       {isSubmitting
-                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Finalizing...</>
+                        ? <>
+                            <span className="inline-block w-1 h-1 bg-[#0A0A0A] rounded-full animate-pulse mr-1"></span>
+                            <span className="font-mono">// ANCHORING COMPLIANCE TRAIL...</span>
+                          </>
                         : <><Sparkles className="w-3.5 h-3.5" /> Finalize & Ingest</>}
                     </button>
                   )}

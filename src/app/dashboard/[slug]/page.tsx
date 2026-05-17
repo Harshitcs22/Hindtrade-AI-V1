@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ShowroomHeader } from "@/components/dashboard/ShowroomHeader";
+import { ShowroomHeader } from "@/components/dashboard/header/ShowroomHeader";
 import { BusinessSignals } from "@/components/dashboard/BusinessSignals";
 import { AIRiskWidget } from "@/components/dashboard/AIRiskWidget";
 import { InstitutionalOverview } from "@/components/dashboard/InstitutionalOverview";
+import { InstitutionalBio } from "@/components/dashboard/InstitutionalBio";
 import { VerificationVault } from "@/components/dashboard/VerificationVault";
 import { ProductGrid } from "@/components/dashboard/ProductGrid";
 import { ProductStoryModal } from "@/components/dashboard/ProductStoryModal";
@@ -52,17 +53,34 @@ export default function DynamicDashboardPage() {
   const router = useRouter();
 
   const {
-    fetchFirmData, isLoading, error,
+    fetchFirmData,
+    fetchDashboardData,
+    setUpRealtimeListeners,
+    tearDownRealtimeListeners,
+    isLoading, error,
     firmDetails, inventory, documents,
     isEditMode, toggleEditMode,
+    multiFirm, multiVerifications,
   } = useProductStore();
 
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   useEffect(() => {
-    if (slug) fetchFirmData(slug);
-  }, [slug, fetchFirmData]);
+    if (slug) {
+      // Fetch both legacy and multi-tenant data for full compatibility
+      fetchFirmData(slug);
+      fetchDashboardData(slug).then(() => {
+        // Set up real-time listeners after data is loaded
+        setUpRealtimeListeners();
+      });
+    }
+
+    // Cleanup real-time listeners on unmount
+    return () => {
+      tearDownRealtimeListeners();
+    };
+  }, [slug, fetchFirmData, fetchDashboardData, setUpRealtimeListeners, tearDownRealtimeListeners]);
 
   // ─── ONBOARDING LOGIC ──────────────────────────────────────────────────────
   const step1Done = documents.filter(
@@ -138,7 +156,10 @@ export default function DynamicDashboardPage() {
       {/* ═══ 2. LIVE EXPORT SIGNALS ═══ */}
       <BusinessSignals />
 
-      {/* ═══ 3. INSTITUTIONAL OVERVIEW (Manufacturing Philosophy) ═══ */}
+      {/* ═══ 3. INSTITUTIONAL BIO ═══ */}
+      <InstitutionalBio />
+
+      {/* ═══ 4. INSTITUTIONAL OVERVIEW (Manufacturing Philosophy) ═══ */}
       <InstitutionalOverview />
 
       {/* ═══ 4. TRADE MAP DASHBOARD (Global Reach) ═══ */}

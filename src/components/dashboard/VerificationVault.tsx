@@ -164,9 +164,21 @@ export function VerificationVault() {
 
                         {/* Edit Mode Addon */}
                         {isEditMode && (
-                          <button className="absolute top-3 right-3 p-2 bg-black/60 border border-white/10 hover:border-[#D4CAA3]/50 transition-colors">
+                          <div 
+                            role="button" 
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                              }
+                            }}
+                            className="absolute top-3 right-3 p-2 bg-black/60 border border-white/10 hover:border-[#D4CAA3]/50 transition-colors cursor-pointer"
+                          >
                             <UploadCloud className="w-3.5 h-3.5 text-[#D4CAA3]" />
-                          </button>
+                          </div>
                         )}
                       </div>
 

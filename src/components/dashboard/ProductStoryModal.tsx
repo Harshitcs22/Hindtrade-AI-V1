@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Fingerprint, ShieldCheck, Trash2 } from "lucide-react";
+import { X, Search, Fingerprint, ShieldCheck, Trash2, Loader2 } from "lucide-react";
 import { useProductStore } from "@/lib/store";
 import { CinematicFrame } from "@/components/ui/CinematicFrame";
 import { MonoLabel } from "@/components/ui/MonoLabel";
