@@ -244,8 +244,15 @@ export const createFirmSlice: StateCreator<StoreState, [], [], FirmSlice> = (set
         isLoading: false,
       });
     } catch (err: any) {
-      console.error('fetchFirmData error:', err);
-      set({ error: err.message, isLoading: false });
+        // Log full error details for easier debugging (handles Error objects and generic payloads)
+        try {
+          const errMsg = err?.message ?? (typeof err === 'string' ? err : JSON.stringify(err, Object.getOwnPropertyNames(err)));
+          console.error('fetchFirmData error:', err, '\nmessage:', errMsg, '\nstack:', err?.stack);
+          set({ error: String(errMsg), isLoading: false });
+        } catch (logErr) {
+          console.error('fetchFirmData error (unable to stringify):', err, logErr);
+          set({ error: 'Unknown error during fetchFirmData', isLoading: false });
+        }
     }
   },
 

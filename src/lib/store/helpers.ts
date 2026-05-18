@@ -163,3 +163,95 @@ export const DEFAULT_DOCS: DocumentType[] = [
   { id: "GST",  name: "GST Compliance",    status: "ACTIVE",   hash: "9a0b3d..." },
   { id: "RCMC", name: "RCMC Certificate",  status: "VERIFIED", hash: "2e5f8g..." },
 ];
+
+// Seed the demo registry with default profiles and products for local sandbox mode
+if (demoFirmRegistry.size === 0) {
+  // 1. HIMROCK EXPORTS
+  demoFirmRegistry.set("himrock-exports", {
+    firmDetails: {
+      ...DEFAULT_FIRM,
+      slug: "himrock-exports",
+    },
+    inventory: DEFAULT_INVENTORY,
+    documents: DEFAULT_DOCS
+  });
+
+  // 2. AKSHAY EXPORTS
+  const akshayFirm: FirmDetails = {
+    id: "92C07E2E-B337-4072-B685-E907412BDD1A",
+    name: "Akshay Exports",
+    established: 1975,
+    iec_status: "VERIFIED",
+    years_in_trade: 51,
+    global_rank: "TIER 1",
+    deals_in: "sports goods and sportswear",
+    location: "Jalandhar, Punjab, India",
+    shipments: "100+",
+    net_worth: "₹50 Cr",
+    trust_score: 85,
+    identity_anchored: true,
+    global_presence: {
+      us: { code: "us", name: "United States", cx: 195, cy: 165, flag: "🇺🇸", exports: "Sports Equipment, Leather Goods", volume: "$2.4M", growth: "+18%", status: "active", shipments: 42 },
+      uk: { code: "uk", name: "United Kingdom", cx: 468, cy: 118, flag: "🇬🇧", exports: "Hockey Sticks, Cricket Bats", volume: "$1.8M", growth: "+12%", status: "active", shipments: 31 },
+    },
+    domestic_presence: {
+      pan_india: true,
+      isPanIndia: true,
+      states: [],
+      active_states: [],
+      moq: "110 UNITS",
+      customs_chapter: "95",
+    },
+    products: []
+  };
+
+  const akshayInventory: ProductType[] = [
+    {
+      id: "prod-akshay-001",
+      name: "Professional cricket leather ball",
+      hsn: "9506.99.30",
+      image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=2067&auto=format&fit=crop",
+      materials: ["Leather", "Synthetic Polyurethane"],
+      audit_trace: JSON.stringify({
+        tariff_line: "95069930",
+        statutory_rationale: "SOVEREIGN LOCK: Classification confirmed under HSN 9506.99.30 based on material characteristics and structural utility. Composed of premium alum-tanned leather and cork core.",
+        logic_trace: {
+          step1: "Main statutory noun identified: 'Raw material structure'.",
+          step2: "Cross-referenced chapter exclusions and verified headings.",
+          step3: "GRI 1 primary logic and subheading criteria validated."
+        },
+        gri_sequence: {
+          gri1: "passed",
+          gri2: "passed",
+          gri3: "passed",
+          gri4: "passed",
+          gri5: "skipped",
+          gri6: "passed"
+        }
+      })
+    },
+    {
+      id: "prod-akshay-002",
+      name: "Professional Field Hockey Stick (Carbon Fiber)",
+      hsn: "9506.99.10",
+      image: "/demo/hockey.png",
+      materials: [
+        "Imported Japanese Toray Carbon Fiber",
+        "Kevlar Core Reinforcement",
+        "Polyurethane Grip (GST 18%)",
+        "Final Assembly (Jalandhar, IN)"
+      ]
+    }
+  ];
+
+  demoFirmRegistry.set("akshay-exports", {
+    firmDetails: akshayFirm,
+    inventory: akshayInventory,
+    documents: [
+      { id: "ISO",  name: "ISO 9001:2015",     status: "VERIFIED", hash: "8d9a2b" },
+      { id: "MSME", name: "MSME Registration", status: "VERIFIED", hash: "4f7e1c" },
+      { id: "GST",  name: "GST Compliance",    status: "ACTIVE",   hash: "9a0b3d" },
+      { id: "RCMC", name: "RCMC Certificate",  status: "VERIFIED", hash: "2e5f8g" },
+    ]
+  });
+}

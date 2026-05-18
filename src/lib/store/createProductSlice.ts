@@ -19,6 +19,25 @@ export const createProductSlice: StateCreator<StoreState, [], [], ProductSlice> 
     if (!firmId) return;
     set({ isLoading: true });
     try {
+      // If Supabase is not configured, try to load demo data
+      if (!isConfigured) {
+        const { demoFirmRegistry } = require('./helpers');
+        const firmDetails = get().firmDetails;
+        
+        // Try to find the demo entry by slug
+        if (demoFirmRegistry && demoFirmRegistry.size > 0 && firmDetails?.slug) {
+          const demoEntry = demoFirmRegistry.get(firmDetails.slug);
+          if (demoEntry && demoEntry.inventory && demoEntry.inventory.length > 0) {
+            set({ 
+              inventory: demoEntry.inventory,
+              products: demoEntry.inventory
+            });
+            set({ isLoading: false });
+            return;
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -38,9 +57,35 @@ export const createProductSlice: StateCreator<StoreState, [], [], ProductSlice> 
           inventory: mappedProducts,
           products: data
         });
+      } else if (error) {
+        console.error("fetchProducts error:", error);
+        // Fallback to demo data if query fails
+        const { demoFirmRegistry } = require('./helpers');
+        const firmDetails = get().firmDetails;
+        if (demoFirmRegistry && demoFirmRegistry.size > 0 && firmDetails?.slug) {
+          const demoEntry = demoFirmRegistry.get(firmDetails.slug);
+          if (demoEntry && demoEntry.inventory) {
+            set({ 
+              inventory: demoEntry.inventory,
+              products: demoEntry.inventory
+            });
+          }
+        }
       }
     } catch (err) {
       console.error("fetchProducts error:", err);
+      // Fallback to demo data on any error
+      const { demoFirmRegistry } = require('./helpers');
+      const firmDetails = get().firmDetails;
+      if (demoFirmRegistry && demoFirmRegistry.size > 0 && firmDetails?.slug) {
+        const demoEntry = demoFirmRegistry.get(firmDetails.slug);
+        if (demoEntry && demoEntry.inventory) {
+          set({ 
+            inventory: demoEntry.inventory,
+            products: demoEntry.inventory
+          });
+        }
+      }
     } finally {
       set({ isLoading: false });
     }

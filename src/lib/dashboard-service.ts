@@ -336,6 +336,40 @@ export function subscribeToFirmUpdates(
 // ─────────────────────────────────────────────────────────────────────────────────
 
 function getMockFirmData(slug: string): FirmWithMetrics {
+  // Import demoFirmRegistry to get the correct demo data for the requested slug
+  const { demoFirmRegistry } = require('./store/helpers');
+  
+  // First, check if the slug exists in demoFirmRegistry
+  if (demoFirmRegistry && demoFirmRegistry.size > 0) {
+    const demoEntry = demoFirmRegistry.get(slug);
+    if (demoEntry) {
+      // Convert firmDetails to FirmWithMetrics format
+      const { firmDetails } = demoEntry;
+      return {
+        id: `firm-${slug}`,
+        slug: slug,
+        name: firmDetails.name,
+        industry: 'sports goods and sportswear',
+        established_year: firmDetails.established || 1980,
+        moq: 1000,
+        location: firmDetails.location || 'India',
+        net_worth: firmDetails.net_worth || '—',
+        rank: 1,
+        iec_status: firmDetails.iec_status || 'VERIFIED',
+        sovereign_trust_score: firmDetails.trust_score || 85,
+        identity_anchored: firmDetails.identity_anchored ?? true,
+        shipments: firmDetails.shipments || '120+',
+        banner_url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop',
+        created_at: '2024-01-15T10:00:00Z',
+        updated_at: new Date().toISOString(),
+        created_by: 'user-123',
+        metrics: getMockMetrics(`firm-${slug}`),
+        verifications: getMockVerifications(`firm-${slug}`),
+      };
+    }
+  }
+  
+  // Fallback: return default mock data for himrock-exports
   return {
     id: '550e8400-e29b-41d4-a716-446655440000',
     slug: 'himrock-exports',

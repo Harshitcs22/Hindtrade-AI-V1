@@ -2,10 +2,12 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useProductStore } from "@/lib/store";
 
-export function ExporterCard({ onOpenAI }: { onOpenAI: () => void }) {
+export function ExporterCard({ onOpenAI }: { onOpenAI?: () => void }) {
   const { firmDetails } = useProductStore();
+  const router = useRouter();
 
   return (
     <motion.div
@@ -95,10 +97,16 @@ export function ExporterCard({ onOpenAI }: { onOpenAI: () => void }) {
             ID: {firmDetails.id || "N/A"} <span className="mx-1 text-zinc-700">|</span> <span className="text-[#D4CAA3]/90 font-normal">VERIFIED</span>
           </div>
           <button 
-            onClick={onOpenAI}
+            onClick={() => {
+              if (firmDetails.slug) {
+                router.push(`/dashboard/${firmDetails.slug}`);
+              } else {
+                router.push(`/dashboard/akshay-exports`);
+              }
+            }}
             className="bg-[#F9F6EE] text-[#0A0A0A] hover:bg-white font-sans font-medium text-[10px] tracking-widest uppercase px-5 py-2.5 rounded-sm transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(212,202,163,0.15)]"
           >
-            Talk to AI <span className="text-lg leading-none mt-[-2px]">✦</span>
+            Visit Profile <span className="text-[10px] leading-none">↗</span>
           </button>
         </div>
       </div>
