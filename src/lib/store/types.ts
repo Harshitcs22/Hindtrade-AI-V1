@@ -112,11 +112,13 @@ export interface FirmSlice {
 
 export interface ProductSlice {
   inventory: ProductType[];
+  products: any[];
   activeProductId: string | null;
   setActiveProduct: (id: string | null) => void;
-  updateProduct: (id: string, updates: Partial<ProductType>) => void;
+  updateProduct: (id: string, updates: any) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   addProductToInventory: (productPayload: any) => Promise<void>;
+  fetchProducts: (firmId: string) => Promise<void>;
 }
 
 export interface VaultSlice {

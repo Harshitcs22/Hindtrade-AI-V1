@@ -55,6 +55,11 @@ export default function SignUpPage() {
       if (signUpError) throw signUpError;
       if (!data.user) throw new Error("Account creation failed. Please try again.");
 
+      // Set the Edge session cookie on the client side if the account is immediately active
+      if (data.session) {
+        document.cookie = "hindtrade_auth_token=" + data.session.access_token + "; path=/; max-age=86400; SameSite=Lax" + (window.location.protocol === "https:" ? "; Secure" : "");
+      }
+
       // Store the user ID immediately from the signUp response.
       // We cannot call getUser() in step 2 if email confirmation is required
       // because the session won't be active until the email is confirmed.

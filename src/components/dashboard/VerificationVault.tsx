@@ -3,13 +3,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  FileText, ShieldCheck, ExternalLink, Map, Plus, X, 
-  Loader2, Lock, Eye, Stamp, Fingerprint, UploadCloud, AlertTriangle 
+  FileText, ShieldCheck, Map, Plus, X, 
+  Loader2, Stamp, Fingerprint, UploadCloud
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useProductStore } from "@/lib/store";
 import { supabase, isConfigured } from "@/lib/supabase";
-import { Verification } from "@/types/supabase";
+import { useVaultUpload } from "@/hooks/useVaultUpload";
+import { VaultCard } from "./VaultCard";
 
 // ── DOCUMENT TYPE THEMES ───────────────────────────────────────────────────
 function getDocTheme(name: string) {
@@ -21,7 +22,7 @@ function getDocTheme(name: string) {
   return { accent: "#F9F6EE" };
 }
 
-// ─── 4 CORE INSTITUTIONAL TRUST PILLARS ─────────────────────────────────────
+// ─── 4 CORE STATUTORY TRUST PILLARS ─────────────────────────────────────────
 const CORE_PILLARS = [
   {
     type: "IEC",
@@ -29,6 +30,7 @@ const CORE_PILLARS = [
     subtitle: "DGFT, Ministry of Commerce",
     description: "Mandatory 10-digit statutory identification for conducting international trade from India.",
     icon: FileText,
+    tooltip: "Mandatory 10-digit statutory identification authorized and issued by the Directorate General of Foreign Trade (DGFT), Ministry of Commerce. Functions as the foundational ledger reference for global cross-border customs shipping clearance from Indian territory."
   },
   {
     type: "GSTIN",
@@ -36,6 +38,7 @@ const CORE_PILLARS = [
     subtitle: "Department of Revenue",
     description: "Statutory tax identification registry essential for domestic material flow validation.",
     icon: ShieldCheck,
+    tooltip: "Sovereign 15-digit national tax administration index verified directly against the Central Department of Revenue ledger. Validates domestic supply-chain flow integrity, fiscal compliance clearance, and official export-ready shipment routing protocols."
   },
   {
     type: "MSME",
@@ -43,6 +46,7 @@ const CORE_PILLARS = [
     subtitle: "Ministry of MSME",
     description: "Sovereign enterprise categorization unlocking institutional benefits and credit guarantees.",
     icon: Fingerprint,
+    tooltip: "Official industrial enterprise categorization signed and locked under the Ministry of Micro, Small, and Medium Enterprises. Authenticates corporate asset metrics, production line allocations, and validates eligibility for sovereign trade credit guarantees and international export subvention benefits."
   },
   {
     type: "INDIAS_TOP_10_EXPORTER",
@@ -50,129 +54,63 @@ const CORE_PILLARS = [
     subtitle: "HindTrade Sovereign Board",
     description: "Premium ranking accreditation for top tier global volume distributors and manufacturers.",
     icon: Stamp,
+    tooltip: "A premium proprietary algorithmic rating benchmark evaluated by the HindTrade Sovereign Trust Framework. Measures real-time transaction container throughput speed, continuous zero-defect shipping performance records, and absolute compliance index health ratings."
   }
 ];
 
-export function VerificationVault() {
+export function VerificationVault({ 
+  hasWriteAccess,
+  isEditMode
+}: { 
+  hasWriteAccess: boolean;
+  isEditMode: boolean;
+}) {
   const { 
     documents, 
-    isEditMode, 
     updateDocument, 
     firmDetails, 
     multiVerifications 
   } = useProductStore();
 
+  const activeEditMode = isEditMode && hasWriteAccess;
+
+  // Custom cert add states
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [certName, setCertName] = useState("");
-  const [certStatus, setCertStatus] = useState<"verified" | "pending">("pending");
+  const [assetNomenclature, setAssetNomenclature] = useState("");
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [modalDragActive, setModalDragActive] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
-  // Pillar Upload States
-  const [uploadingType, setUploadingType] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  // Extract core upload states & methods from central hook
+  const { uploadAsset, uploadingType, uploadError } = useVaultUpload(
+    firmDetails.id || "",
+    firmDetails.slug || ""
+  );
 
-  // ── CORE PILLAR FILE UPLOAD & DISPATCH ─────────────────────────────────────
-  const handlePillarUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
-    const file = e.target.files?.[0];
-    if (!file || !firmDetails.id) return;
-    setUploadingType(docType);
-    setUploadError(null);
-
+  const handlePillarUpload = async (file: File, docType: string) => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${firmDetails.id}/${docType}_${Date.now()}.${fileExt}`;
-
-      if (!isConfigured) {
-        // DEMO MODE BYPASS: Simulate secure upload in local store state
-        await new Promise((r) => setTimeout(r, 1200));
-        
-        const newRecord: Verification = {
-          id: `demo-ver-${Date.now()}`,
-          firm_id: firmDetails.id,
-          document_type: docType,
-          document_url: 'https://placeholder.supabase.co/mock-doc.pdf',
-          status: 'PENDING',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        
-        // Append to multiVerifications in Zustand store
-        const currentVers = useProductStore.getState().multiVerifications || [];
-        useProductStore.setState({ 
-          multiVerifications: [...currentVers.filter(v => v.document_type !== docType), newRecord] 
-        });
-        
-        setUploadingType(null);
-        return;
-      }
-
-      // Live mode storage upload
-      const { error: uploadErr } = await supabase.storage
-        .from('verification-vault')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadErr) throw uploadErr;
-
-      const { data: urlData } = supabase.storage.from('verification-vault').getPublicUrl(filePath);
-
-      // Check if this document type already exists
-      const existing = multiVerifications?.find(v => v.document_type === docType);
-      
-      if (existing) {
-        const { error: dbErr } = await supabase
-          .from('verifications')
-          .update({
-            document_url: urlData.publicUrl,
-            status: 'PENDING',
-            comments: null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existing.id);
-
-        if (dbErr) throw dbErr;
-      } else {
-        const { error: dbErr } = await supabase
-          .from('verifications')
-          .insert({
-            firm_id: firmDetails.id,
-            document_type: docType,
-            document_url: urlData.publicUrl,
-            status: 'PENDING'
-          });
-
-        if (dbErr) throw dbErr;
-      }
-
-      // Trigger store refresh to update UI state
-      const { fetchDashboardData } = useProductStore.getState();
-      if (firmDetails.slug) {
-        await fetchDashboardData(firmDetails.slug);
-      }
-
-    } catch (err: any) {
-      console.error('Core pillar upload failure:', err);
-      setUploadError(err.message || 'Verification upload rejected by security policies.');
-    } finally {
-      setUploadingType(null);
+      await uploadAsset(file, docType);
+    } catch (err) {
+      console.error("Upload error inside vault view:", err);
     }
   };
 
-  // ── CUSTOM ACCREDITATION ADDITION ──────────────────────────────────────────
-  const handleAddCert = async (e: React.FormEvent) => {
+  // ── CUSTOM ACCREDITATION ADDITION (UNIFIED PIPELINE) ───────────────────────
+  const handleUnifiedIngestionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!certName.trim() || !firmDetails.id) return;
+    if (!assetNomenclature.trim() || !attachedFile || !firmDetails.id) return;
     setIsAdding(true);
     setAddError(null);
 
     try {
       if (!isConfigured) {
         // DEMO MODE BYPASS: Add custom certification in-memory
-        await new Promise((r) => setTimeout(r, 600));
+        await new Promise((r) => setTimeout(r, 800));
         const newDoc = {
           id: `doc-${Math.random().toString(36).substring(2, 9)}`,
-          name: certName.trim(),
-          status: certStatus.toUpperCase() as any,
+          name: assetNomenclature.trim(),
+          status: 'pending' as any,
           hash: Math.random().toString(36).substring(2, 8).toUpperCase(),
         };
         
@@ -186,38 +124,123 @@ export function VerificationVault() {
         const { fetchFirmData } = useProductStore.getState();
         if (firmDetails.slug) await fetchFirmData(firmDetails.slug);
         
-        setCertName("");
-        setCertStatus("pending");
+        setAssetNomenclature("");
+        setAttachedFile(null);
         setIsAddOpen(false);
         return;
       }
+
+      // 1. Dispatch binary file stream to the verification-vault storage bucket channel
+      const fileExt = attachedFile.name.split('.').pop();
+      const filePath = `${firmDetails.id}/custom_${Date.now()}.${fileExt}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('verification-vault')
+        .upload(filePath, attachedFile);
+
+      if (uploadErr) throw uploadErr;
+
+      // 2. Recover live public URL
+      const { data: urlData } = supabase.storage.from('verification-vault').getPublicUrl(filePath);
+
+      // 3. Post structural database row record entry safely anchored under status: 'pending'
+      const { error: dbErr } = await supabase.from('certifications').insert({
+        firm_id: firmDetails.id,
+        name: assetNomenclature.trim(),
+        status: 'pending', // Bound strictly to audit review constraints
+        file_url: urlData.publicUrl
+      });
+
+      if (dbErr) throw dbErr;
+
+      // 4. Success cleanup loops: Reset local UI state inputs and dismiss modal viewport view
+      setAssetNomenclature("");
+      setAttachedFile(null);
+      setIsAddOpen(false);
+      
+      const { fetchFirmData } = useProductStore.getState();
+      if (firmDetails.slug) await fetchFirmData(firmDetails.slug);
+
+    } catch (err: any) {
+      console.error("Critical: Unified compliance ingestion chain broke down:", err);
+      setAddError(err.message || "Failed to finalize asset ingestion.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleAddCustomCert = async (file: File) => {
+    if (!file || !firmDetails.id) return;
+    setIsAdding(true);
+    try {
+      const docType = "CUSTOM_CERT_" + Math.random().toString(36).substring(2, 6).toUpperCase();
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${firmDetails.id}/${docType}_${Date.now()}.${fileExt}`;
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+
+      if (!isConfigured) {
+        // Demo Mode bypass
+        await new Promise((r) => setTimeout(r, 800));
+        const newDoc = {
+          id: `doc-${Math.random().toString(36).substring(2, 9)}`,
+          name: nameWithoutExt,
+          status: 'pending' as any,
+          hash: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        };
+
+        const { demoFirmRegistry } = await import("@/lib/store/helpers");
+        const entry = demoFirmRegistry.get(firmDetails.slug || "himrock-exports");
+        if (entry) {
+          entry.documents.push(newDoc);
+        }
+
+        const { fetchFirmData } = useProductStore.getState();
+        if (firmDetails.slug) await fetchFirmData(firmDetails.slug);
+        return;
+      }
+
+      // Live mode upload
+      const { error: uploadErr } = await supabase.storage
+        .from('verification-vault')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabase.storage.from('verification-vault').getPublicUrl(filePath);
 
       const { error } = await supabase
         .from("certifications")
         .insert([{
           firm_id: firmDetails.id,
-          name: certName.trim(),
-          status: certStatus,
+          name: nameWithoutExt,
+          status: 'pending',
           hash: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          file_url: urlData.publicUrl
         }]);
 
       if (error) throw error;
 
       const { fetchFirmData } = useProductStore.getState();
       if (firmDetails.slug) await fetchFirmData(firmDetails.slug);
-
-      setCertName("");
-      setCertStatus("pending");
-      setIsAddOpen(false);
     } catch (err: any) {
-      setAddError(err.message || "Failed to add certification.");
+      console.error("Failed to add custom certification:", err);
     } finally {
       setIsAdding(false);
     }
   };
 
+  const statutoryKeys = ['IEC', 'GSTIN', 'MSME', 'INDIAS_TOP_10_EXPORTER'];
+  const customCertifications = (documents || []).filter(
+    (cert: any) => !statutoryKeys.includes(cert.name.toUpperCase())
+  );
+
   return (
-    <section className="py-24 px-8 md:px-12 bg-[#050505] relative overflow-hidden break-inside-avoid">
+    <section className="py-24 px-8 md:px-12 bg-[#050505] relative break-inside-avoid">
+      {isEditMode && (
+        <div className="font-sans text-[10px] tracking-[0.25em] bg-zinc-950 text-[#D4CAA3] py-2 text-center uppercase border-b border-[#D4CAA3]/10 w-full mb-6">
+          SYSTEM MANAGEMENT MODE ACTIVE: SOVEREIGN INGESTION CHANNELS UNLOCKED
+        </div>
+      )}
       {/* Background visualization */}
       <div className="absolute top-0 right-0 w-1/2 h-full opacity-[0.02] pointer-events-none flex items-center justify-center">
         <Map className="w-[800px] h-[800px] text-[#22D3EE]" strokeWidth={0.2} />
@@ -264,126 +287,21 @@ export function VerificationVault() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
           {CORE_PILLARS.map((pillar) => {
             const record = multiVerifications?.find(v => v.document_type === pillar.type);
-            const PillarIcon = pillar.icon;
-            
-            // Calculate state conditions
-            const hasRecord = record && record.document_url;
-            const isVerified = hasRecord && (record.status === "APPROVED" || (record.status as any) === "verified");
-            const isPending = hasRecord && (record.status === "PENDING" || record.status === "UNDER_REVIEW");
-            const isRejected = hasRecord && (record.status === "REJECTED" || (record.status as any) === "FAILED");
 
             return (
-              <div 
+              <VaultCard
                 key={pillar.type}
-                className="relative bg-zinc-950/40 backdrop-blur-md p-6 md:p-8 border border-white/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:border-zinc-700/40 select-none overflow-hidden flex flex-col justify-between min-h-[360px] shadow-[20px_20px_50px_rgba(0,0,0,0.5)] group"
-              >
-                {/* Visual Stamp Overlay (Approved State) */}
-                {isVerified && (
-                  <div className="absolute top-4 right-4 border-2 border-[#22D3EE]/60 bg-[#22D3EE]/5 text-[#22D3EE] font-serif text-[11px] font-bold tracking-[0.2em] uppercase px-3 py-1 -rotate-12 skew-x-3 shadow-[0_0_15px_rgba(34,211,238,0.15)] pointer-events-none z-10">
-                    Verified
-                  </div>
-                )}
-
-                <div>
-                  {/* Top line with category / status */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center">
-                      <PillarIcon className="w-5 h-5 text-[#D4CAA3] group-hover:scale-110 transition-transform duration-300" />
-                    </div>
-                    {hasRecord && (
-                      <a 
-                        href={record.document_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-zinc-500 hover:text-[#D4CAA3] transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Title info */}
-                  <h3 className="text-[#F9F6EE] font-serif text-xl tracking-tight mb-1">{pillar.title}</h3>
-                  <p className="text-[9px] font-mono tracking-widest text-[#D4CAA3] uppercase mb-4">{pillar.subtitle}</p>
-                  <p className="text-xs text-zinc-500 font-light leading-relaxed mb-6">{pillar.description}</p>
-                </div>
-
-                <div>
-                  {/* Visual variants baselines */}
-                  {!hasRecord ? (
-                    // STATE V1: NO ASSET FOUND (THE INGESTION SLOT)
-                    <div className="border border-dashed border-white/10 bg-zinc-950/20 p-5 flex flex-col items-center justify-center cursor-pointer hover:border-zinc-500 hover:bg-zinc-900/10 transition-all relative">
-                      {uploadingType === pillar.type ? (
-                        <div className="flex items-center gap-2 text-zinc-600 font-mono text-[9px] uppercase tracking-widest">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Ingesting...
-                        </div>
-                      ) : (
-                        <>
-                          <UploadCloud className="w-4 h-4 text-zinc-700 mb-2 group-hover:text-[#D4CAA3] transition-colors" />
-                          <span className="font-sans text-[9px] tracking-widest text-zinc-500 uppercase font-bold group-hover:text-zinc-400 transition-colors">
-                            Deploy Document Asset +
-                          </span>
-                        </>
-                      )}
-                      <input 
-                        type="file" 
-                        disabled={uploadingType === pillar.type}
-                        onChange={(e) => handlePillarUpload(e, pillar.type)} 
-                        className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
-                        accept=".pdf,image/*" 
-                      />
-                    </div>
-                  ) : (
-                    <div className="pt-4 border-t border-white/[0.04] space-y-3">
-                      {/* STATE V2: PENDING REVIEW */}
-                      {isPending && (
-                        <div className="flex items-center gap-2 font-sans text-[9px] tracking-widest text-amber-500 uppercase font-semibold animate-pulse">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          Under Institutional Audit Review
-                        </div>
-                      )}
-
-                      {/* STATE V3: APPROVED COMPLIANCE DETAILS */}
-                      {isVerified && (
-                        <div className="flex items-center gap-2 font-sans text-[9px] tracking-widest text-[#DEFF9A] uppercase font-bold">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#DEFF9A]" />
-                          Statutory Ledger Anchored
-                        </div>
-                      )}
-
-                      {/* STATE V4: REJECTED COMPLIANCE TRACE */}
-                      {isRejected && (
-                        <div className="bg-red-500/5 border border-red-500/10 p-3">
-                          <div className="flex items-center gap-1.5 text-red-500 font-sans text-[9px] tracking-widest uppercase font-bold">
-                            <AlertTriangle className="w-3.5 h-3.5" />
-                            Audit Action Required
-                          </div>
-                          <p className="text-red-400 font-sans text-[9px] tracking-wider uppercase mt-1 leading-normal">
-                            Audit Failed: {record.comments || "Invalid Credentials"}
-                          </p>
-                          {/* Reupload capability */}
-                          <div className="mt-3 relative">
-                            <button className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 font-mono text-[8px] tracking-widest uppercase py-2 border border-red-500/20 transition-all">
-                              Upload Corrective Asset ⟳
-                            </button>
-                            <input 
-                              type="file" 
-                              onChange={(e) => handlePillarUpload(e, pillar.type)} 
-                              className="absolute inset-0 opacity-0 cursor-pointer" 
-                              accept=".pdf,image/*" 
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between items-center text-[8px] font-mono text-zinc-700 uppercase tracking-widest">
-                        <span>LEDGER ID</span>
-                        <span className="text-zinc-600">HT-{record.id?.substring(0, 8)}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+                docType={pillar.type}
+                label={pillar.title}
+                subtitle={pillar.subtitle}
+                description={pillar.description}
+                icon={pillar.icon}
+                currentRecord={record}
+                onUploadComplete={(file) => handlePillarUpload(file, pillar.type)}
+                isUploading={uploadingType === pillar.type}
+                tooltipText={pillar.tooltip}
+                isEditMode={activeEditMode}
+              />
             );
           })}
         </div>
@@ -411,8 +329,7 @@ export function VerificationVault() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
           <TooltipProvider>
-            {documents.map((doc, idx) => {
-              const theme = getDocTheme(doc.name);
+            {customCertifications.map((doc, idx) => {
               const isVerified = doc.status === "VERIFIED" || doc.status === "verified";
 
               return (
@@ -425,7 +342,7 @@ export function VerificationVault() {
                       viewport={{ once: true, margin: "-20px" }}
                       className="h-full transform-gpu"
                     >
-                      <div className="relative bg-zinc-950/40 backdrop-blur-md p-6 md:p-8 border border-white/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:border-zinc-700/40 select-none overflow-hidden flex flex-col justify-between min-h-[300px] shadow-[20px_20px_50px_rgba(0,0,0,0.5)] group">
+                      <div className="relative bg-zinc-950/40 backdrop-blur-md p-6 border border-white/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:border-[#D4CAA3]/20 select-none overflow-hidden flex flex-col justify-between min-h-[300px] shadow-[20px_20px_50px_rgba(0,0,0,0.5)] group">
                         {/* Custom Rubber Stamp Effect */}
                         {isVerified && (
                           <div className="absolute top-4 right-4 border-2 border-[#DEFF9A]/60 bg-[#DEFF9A]/5 text-[#DEFF9A] font-serif text-[11px] font-bold tracking-[0.2em] uppercase px-3 py-1 -rotate-12 skew-x-3 shadow-[0_0_15px_rgba(222,255,154,0.15)] pointer-events-none z-10">
@@ -441,7 +358,7 @@ export function VerificationVault() {
                           </div>
 
                           <div className="mb-4">
-                            {isEditMode ? (
+                            {activeEditMode ? (
                               <input
                                 value={doc.name}
                                 onChange={(e) => updateDocument(doc.id, { name: e.target.value })}
@@ -490,18 +407,25 @@ export function VerificationVault() {
               );
             })}
 
-            {isEditMode && documents.length < 6 && (
-              <button
-                onClick={() => setIsAddOpen(true)}
-                className="border border-dashed border-[#D4CAA3]/10 bg-[#0D0D0D]/50 flex flex-col items-center justify-center gap-4 hover:border-[#D4CAA3]/30 transition-all group min-h-[300px]"
-              >
-                <div className="w-12 h-12 rounded-full bg-[#D4CAA3]/5 flex items-center justify-center group-hover:bg-[#D4CAA3]/10 transition-colors">
-                  <Plus className="w-5 h-5 text-[#D4CAA3]/40 group-hover:text-[#D4CAA3] transition-colors group-hover:rotate-90 duration-500" />
+            {activeEditMode ? (
+              <>
+                {customCertifications.length === 0 && (
+                  <div className="col-span-full">
+                    <OperationalDragDropMesh onUploadComplete={handleAddCustomCert} />
+                  </div>
+                )}
+                {customCertifications.length > 0 && customCertifications.length < 6 && (
+                  <OperationalDragDropMesh onUploadComplete={handleAddCustomCert} />
+                )}
+              </>
+            ) : (
+              customCertifications.length === 0 && (
+                <div className="col-span-full text-center py-12 border border-dashed border-white/5 bg-zinc-950/20">
+                  <span className="font-mono text-[9px] tracking-[0.2em] text-zinc-600 uppercase">
+                    No custom certifications filed
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono text-zinc-700 group-hover:text-[#D4CAA3] tracking-[0.4em] uppercase">
-                  New Asset
-                </span>
-              </button>
+              )
             )}
           </TooltipProvider>
         </div>
@@ -540,51 +464,84 @@ export function VerificationVault() {
                   <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-mono p-4 mb-6 uppercase tracking-widest">{addError}</div>
                 )}
 
-                <form onSubmit={handleAddCert} className="space-y-6">
+                <form onSubmit={handleUnifiedIngestionSubmit} className="space-y-6">
                   <div>
                     <label className="text-[9px] font-mono font-bold tracking-[0.3em] text-zinc-500 uppercase mb-3 block">
                       Asset Nomenclature
                     </label>
                     <input
-                      value={certName}
-                      onChange={(e) => setCertName(e.target.value)}
+                      value={assetNomenclature}
+                      onChange={(e) => setAssetNomenclature(e.target.value)}
                       placeholder="e.g., ISO-9001 AUDIT"
                       required
                       className="w-full bg-[#050505] border border-white/5 text-[#F9F6EE] text-sm px-5 py-4 outline-none focus:border-[#D4CAA3]/40 transition-colors placeholder:text-zinc-800 font-mono"
                     />
                   </div>
 
-                  <div>
-                    <label className="text-[9px] font-mono font-bold tracking-[0.3em] text-zinc-500 uppercase mb-3 block">
-                      Verification Level
-                    </label>
-                    <div className="flex gap-4">
-                      {(["verified", "pending"] as const).map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setCertStatus(s)}
-                          className={`flex-1 py-3 text-[10px] font-mono tracking-[0.2em] uppercase transition-all border
-                            ${certStatus === s
-                              ? "bg-[#D4CAA3]/5 border-[#D4CAA3]/40 text-[#D4CAA3]"
-                              : "bg-transparent border-white/5 text-zinc-700 hover:border-white/10"
-                            }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
+                  {/* Dynamic Drag-and-Drop Attachment Slot inside the Ingestion Modal */}
+                  <div className="flex flex-col gap-y-2 mt-5">
+                    <span className="font-sans text-[9px] tracking-[0.2em] text-zinc-500 uppercase font-semibold">
+                      SUPPORTING CERTIFICATE ASSET (.PDF / .PNG / .JPG)
+                    </span>
+                    
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setModalDragActive(true); }}
+                      onDragLeave={() => setModalDragActive(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setModalDragActive(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) setAttachedFile(file);
+                      }}
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.pdf,.png,.jpg,.jpeg';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) setAttachedFile(file);
+                        };
+                        input.click();
+                      }}
+                      className={`w-full h-32 border border-dashed transition-all duration-300 flex flex-col items-center justify-center p-4 cursor-pointer select-none ${
+                        modalDragActive
+                          ? 'border-[#D4CAA3] bg-zinc-900/50 shadow-[0_0_15px_rgba(212,202,163,0.15)]'
+                          : attachedFile 
+                            ? 'border-emerald-500/40 bg-emerald-950/5' 
+                            : 'border-white/10 bg-zinc-900/20 hover:border-white/20'
+                      }`}
+                    >
+                      {attachedFile ? (
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <span className="font-sans text-xs text-emerald-400 font-semibold tracking-wide">
+                            ✓ {attachedFile.name.length > 24 ? attachedFile.name.slice(0, 22) + '...' : attachedFile.name}
+                          </span>
+                          <span className="font-sans text-[9px] text-zinc-500 uppercase tracking-widest mt-1">
+                            Ready for transmission ({Math.round(attachedFile.size / 1024)} KB)
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <span className="font-sans text-[10px] tracking-widest text-zinc-400 uppercase font-medium">
+                            Drop Certificate File Here
+                          </span>
+                          <span className="font-sans text-[9px] text-zinc-600 tracking-wider uppercase mt-1">
+                            or click to navigate file system
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isAdding || !certName.trim()}
+                    disabled={isAdding || !assetNomenclature.trim() || !attachedFile}
                     className="w-full bg-[#D4CAA3] text-black font-bold text-[10px] tracking-[0.3em] uppercase py-5 flex items-center justify-center gap-3 hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
                   >
                     {isAdding ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Anchoring...</>
                     ) : (
-                      <><ShieldCheck className="w-4 h-4" /> Finalize Ingestion</>
+                      <><ShieldCheck className="w-4 h-4" /> FINALIZE INGESTION FOR REVIEW</>
                     )}
                   </button>
                 </form>
@@ -594,5 +551,47 @@ export function VerificationVault() {
         )}
       </AnimatePresence>
     </section>
+  );
+}
+
+// ── CUSTOM OPERATIONAL GRID VISIBILITY ENFORCER ──────────────────────────────
+function OperationalDragDropMesh({ onUploadComplete }: { onUploadComplete: (file: File) => Promise<void> }) {
+  const [dragActive, setDragActive] = useState(false);
+
+  return (
+    <div 
+      onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+      onDragLeave={() => setDragActive(false)}
+      onDrop={async (e) => {
+        e.preventDefault();
+        setDragActive(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+          await onUploadComplete(file);
+        }
+      }}
+      className={`w-full min-h-[300px] border transition-all duration-300 flex flex-col items-center justify-center p-6 cursor-pointer relative ${
+        dragActive 
+          ? 'border-dashed border-[#D4CAA3] bg-zinc-900/60 shadow-[0_0_20px_rgba(212,202,163,0.25)]' 
+          : 'border-dashed border-white/10 bg-zinc-950/20 hover:border-white/20'
+      }`}
+    >
+      <UploadCloud className="w-5 h-5 text-zinc-500 mb-2 animate-pulse" />
+      <span className="font-sans text-[9px] tracking-[0.2em] text-zinc-400 uppercase font-medium">
+        Drop Custom Certificate Asset +
+      </span>
+      <span className="font-sans text-[8px] text-zinc-600 uppercase tracking-widest mt-1">
+        or click to browse
+      </span>
+      <input 
+        type="file" 
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUploadComplete(file);
+        }} 
+        className="absolute inset-0 opacity-0 cursor-pointer" 
+        accept=".pdf,image/*" 
+      />
+    </div>
   );
 }

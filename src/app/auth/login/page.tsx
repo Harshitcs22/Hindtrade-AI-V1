@@ -38,6 +38,11 @@ export default function LoginPage() {
       if (signInError) throw signInError;
       if (!data.user) throw new Error("Authentication failed.");
 
+      // Set the Edge session cookie on the client side to unlock private route gateways on App Router
+      if (data.session) {
+        document.cookie = "hindtrade_auth_token=" + data.session.access_token + "; path=/; max-age=86400; SameSite=Lax" + (window.location.protocol === "https:" ? "; Secure" : "");
+      }
+
       // Check if proxy gave us a redirect target
       const redirectTo = getRedirect();
       if (redirectTo && redirectTo.startsWith("/dashboard/")) {

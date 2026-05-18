@@ -11,54 +11,145 @@ import { getCorrectedHSN, DEFAULT_INVENTORY } from './helpers';
 
 export const createProductSlice: StateCreator<StoreState, [], [], ProductSlice> = (set, get) => ({
   inventory: DEFAULT_INVENTORY,
+  products: [],
   activeProductId: null,
   setActiveProduct: (id) => set({ activeProductId: id }),
 
-  updateProduct: (id, updates) =>
-    set((state) => {
-      if (updates.name || updates.hsn) {
-        const current = state.inventory.find(p => p.id === id);
-        const resolvedName = updates.name || current?.name || '';
-        updates.hsn = getCorrectedHSN(resolvedName, updates.hsn || current?.hsn || '');
+  fetchProducts: async (firmId: string) => {
+    if (!firmId) return;
+    set({ isLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('firm_id', firmId)
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        const mappedProducts = data.map((dbRow: any) => ({
+          id: dbRow.id,
+          name: dbRow.name,
+          hsn: dbRow.hsn_code,
+          image: dbRow.image_url || 'https://images.unsplash.com/photo-1486401899868-87e8d3931e5e?w=800&q=80',
+          materials: dbRow.material || [],
+          audit_trace: dbRow.audit_trace,
+          trade_terms: dbRow.trade_terms
+        }));
+        set({ 
+          inventory: mappedProducts,
+          products: data
+        });
       }
-      return {
-        inventory: state.inventory.map(p => p.id === id ? { ...p, ...updates } : p)
+    } catch (err) {
+      console.error("fetchProducts error:", err);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  updateProduct: async (productId: string, updatedFields: any) => {
+    if (!productId) return;
+    set({ isLoading: true, error: null });
+
+    // Instantly sync frontend array cache
+    set((state: any) => {
+      const current = state.inventory.find((p: any) => p.id === productId);
+      const resolvedName = updatedFields.name !== undefined ? updatedFields.name : (current?.name || '');
+      const formattedHsn = updatedFields.hsn_code || updatedFields.hsn || current?.hsn || '';
+      const correctedHsn = getCorrectedHSN(resolvedName, formattedHsn);
+      
+      const newProduct = {
+        ...current,
+        name: resolvedName,
+        hsn: correctedHsn,
+        image: updatedFields.image_url || updatedFields.image || current?.image,
+        materials: updatedFields.material || updatedFields.materials || current?.materials || [],
+        audit_trace: updatedFields.audit_trace || current?.audit_trace,
+        trade_terms: updatedFields.trade_terms || current?.trade_terms
       };
-    }),
+      
+      return {
+        inventory: state.inventory.map((p: any) => p.id === productId ? newProduct : p)
+      };
+    });
+
+    if (!isConfigured) {
+      set({ isLoading: false });
+      return;
+    }
+
+    try {
+      const payload: any = {};
+      if (updatedFields.name !== undefined) payload.name = updatedFields.name;
+      if (updatedFields.hsn_code !== undefined) payload.hsn_code = updatedFields.hsn_code;
+      if (updatedFields.hsn !== undefined && updatedFields.hsn_code === undefined) payload.hsn_code = updatedFields.hsn;
+      if (updatedFields.material !== undefined) payload.material = updatedFields.material;
+      if (updatedFields.journey !== undefined) payload.journey = updatedFields.journey;
+      if (updatedFields.image_url !== undefined) payload.image_url = updatedFields.image_url;
+      if (updatedFields.image !== undefined && updatedFields.image_url === undefined) payload.image_url = updatedFields.image;
+      if (updatedFields.audit_trace !== undefined) payload.audit_trace = updatedFields.audit_trace;
+      if (updatedFields.trade_terms !== undefined) payload.trade_terms = updatedFields.trade_terms;
+
+      const { data, error } = await supabase
+        .from('products')
+        .update(payload)
+        .eq('id', productId)
+        .select();
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const dbRow = data[0];
+        set((state: any) => {
+          const optimisticProduct: ProductType = {
+            id: dbRow.id,
+            name: dbRow.name,
+            hsn: dbRow.hsn_code,
+            image: dbRow.image_url || 'https://images.unsplash.com/photo-1486401899868-87e8d3931e5e?w=800&q=80',
+            materials: dbRow.material || [],
+            audit_trace: dbRow.audit_trace,
+            trade_terms: dbRow.trade_terms
+          };
+          return {
+            inventory: state.inventory.map((p: any) => p.id === productId ? optimisticProduct : p),
+            products: state.products?.map((p: any) => p.id === productId ? dbRow : p) || []
+          };
+        });
+      }
+    } catch (err: any) {
+      console.error("updateProduct error:", err.message);
+      set({ error: err.message });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
   deleteProduct: async (productId: string) => {
+    if (!productId) {
+      console.error("Aborting deletion: Execution context missing valid target UUID token.");
+      return;
+    }
     set({ isLoading: true, error: null });
 
     if (!isConfigured) {
       set((state) => ({
         inventory: state.inventory.filter(p => p.id !== productId),
+        products: (state.products || []).filter((p: any) => p.id !== productId),
         isLoading: false
       }));
       return;
     }
 
     try {
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from('products')
-        .delete({ count: 'exact' })
+        .delete()
         .eq('id', productId);
 
       if (error) throw error;
       
-      if (count === 0) {
-        console.warn('No product found with ID:', productId);
-        if (productId.startsWith('prod-')) {
-          set((state) => ({
-            inventory: state.inventory.filter(p => p.id !== productId),
-            isLoading: false
-          }));
-          return;
-        }
-        throw new Error('Product not found in database or RLS policy blocked deletion.');
-      }
-
-      set((state) => ({
-        inventory: state.inventory.filter(p => p.id !== productId),
+      set((state: any) => ({
+        inventory: state.inventory.filter((p: any) => p.id !== productId),
+        products: (state.products || []).filter((p: any) => p.id !== productId),
         isLoading: false
       }));
     } catch (err: any) {
@@ -84,6 +175,7 @@ export const createProductSlice: StateCreator<StoreState, [], [], ProductSlice> 
         hsn: productPayload.hsn_code || '9506.99.99',
         image: productPayload.image_url || 'https://images.unsplash.com/photo-1486401899868-87e8d3931e5e?w=800&q=80',
         materials: Array.isArray(productPayload.material) ? productPayload.material : [productPayload.material || 'Unspecified'],
+        trade_terms: productPayload.trade_terms,
       };
       set((state) => ({
         inventory: [...state.inventory, newProduct],
@@ -96,23 +188,57 @@ export const createProductSlice: StateCreator<StoreState, [], [], ProductSlice> 
     }
 
     try {
+      const safeTrim = (val: any): string => {
+        if (typeof val === 'string') return val.trim();
+        if (val && typeof val === 'object' && 'name' in val) return typeof val.name === 'string' ? val.name.trim() : '';
+        if (val && typeof val === 'object' && 'title' in val) return typeof val.title === 'string' ? val.title.trim() : '';
+        return '';
+      };
+
+      const payloadMaterial = Array.isArray(productPayload.material) 
+        ? productPayload.material.map((m: any) => {
+            if (typeof m === 'string') return { index: 0, name: m.trim(), category: 'raw_material' };
+            if (m && typeof m === 'object') {
+              return {
+                ...m,
+                name: typeof m.name === 'string' ? m.name.trim() : (m.name || '')
+              };
+            }
+            return m;
+          })
+        : [];
+
+      const payloadJourney = Array.isArray(productPayload.journey)
+        ? productPayload.journey.map((j: any, idx: number) => {
+            if (typeof j === 'string') {
+              return {
+                step: idx + 1,
+                title: j.trim(),
+                location: 'Jalandhar, IN',
+                timestamp: new Date().toISOString(),
+              };
+            }
+            if (j && typeof j === 'object') {
+              return {
+                step: typeof j.step === 'number' ? j.step : (idx + 1),
+                title: typeof j.title === 'string' ? j.title.trim() : (j.title || `Step ${idx + 1}`),
+                location: typeof j.location === 'string' ? j.location : 'Jalandhar, IN',
+                timestamp: typeof j.timestamp === 'string' ? j.timestamp : new Date().toISOString(),
+              };
+            }
+            return j;
+          })
+        : [];
+
       const insertPayload = {
         firm_id: firmDetails.id,
-        name: productPayload.name?.trim() || 'Untitled',
+        name: typeof productPayload.name === 'string' ? productPayload.name.trim() : 'Untitled',
         hsn_code: productPayload.hsn_code || '9506.99.99',
-        material: Array.isArray(productPayload.material)
-          ? productPayload.material.filter((m: string) => m?.trim())
-          : [productPayload.material || 'Unspecified'],
-        journey: Array.isArray(productPayload.journey)
-          ? productPayload.journey.map((step: string, idx: number) => ({
-              step: idx + 1,
-              title: step?.trim() || `Step ${idx + 1}`,
-              location: 'Jalandhar, IN',
-              timestamp: new Date().toISOString(),
-            }))
-          : [],
-        image_url: productPayload.image_url?.trim() || null,
+        material: payloadMaterial,
+        journey: payloadJourney,
+        image_url: typeof productPayload.image_url === 'string' ? productPayload.image_url.trim() : null,
         audit_trace: productPayload.audit_trace || 'Product ingested via compliance modal',
+        trade_terms: productPayload.trade_terms
       };
 
       const { data: insertedRow, error: insertError } = await supabase
@@ -133,6 +259,7 @@ export const createProductSlice: StateCreator<StoreState, [], [], ProductSlice> 
           hsn: dbRow.hsn_code,
           image: dbRow.image_url || 'https://images.unsplash.com/photo-1486401899868-87e8d3931e5e?w=800&q=80',
           materials: dbRow.material || [],
+          trade_terms: dbRow.trade_terms
         };
         set((state) => ({
           inventory: [...state.inventory, optimisticProduct],

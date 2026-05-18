@@ -47,10 +47,18 @@ function calcReadiness(
   return { score: Math.min(score, 100), missing };
 }
 
-export function ShowroomHeader({ onOpenAI }: { onOpenAI?: () => void }) {
+export function ShowroomHeader({ 
+  onOpenAI, 
+  hasWriteAccess,
+  isEditMode,
+  setIsEditMode
+}: { 
+  onOpenAI?: () => void; 
+  hasWriteAccess: boolean;
+  isEditMode: boolean;
+  setIsEditMode: (val: boolean) => void;
+}) {
   const {
-    isEditMode,
-    toggleEditMode,
     firmDetails,
     updateProfileStats,
     inventory,
@@ -63,6 +71,12 @@ export function ShowroomHeader({ onOpenAI }: { onOpenAI?: () => void }) {
   const [isPendingMutation, setIsPendingMutation] = useState(false);
   const mutationQueueRef = useRef<Array<{ field: string; value: string }>>([]);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!hasWriteAccess && isEditMode) {
+      setIsEditMode(false);
+    }
+  }, [hasWriteAccess, isEditMode, setIsEditMode]);
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [showCompliance, setShowCompliance] = useState(false);
@@ -254,19 +268,43 @@ export function ShowroomHeader({ onOpenAI }: { onOpenAI?: () => void }) {
             )}
           </AnimatePresence>
 
-          <div className="flex items-center gap-2.5 bg-black/70 backdrop-blur-md px-4 py-2.5 border border-white/10">
-            <Settings2 className={`w-3.5 h-3.5 transition-colors ${isEditMode ? "text-[#D4CAA3]" : "text-zinc-600"}`} />
-            <span className="text-[9px] font-mono tracking-[0.2em] text-zinc-400 uppercase">Edit</span>
-            <Switch checked={isEditMode} onCheckedChange={toggleEditMode} className="scale-75 ml-1" />
-          </div>
+          {/* ENFORCED ADMINISTRATIVE ROLE GUARD UTILITY */}
+          {hasWriteAccess ? (
+            <div className="flex items-center gap-2.5 bg-black/70 backdrop-blur-md px-4 py-2.5 border border-white/10">
+              <Settings2 className={`w-3.5 h-3.5 transition-colors ${isEditMode ? "text-[#D4CAA3]" : "text-zinc-600"}`} />
+              <span className="text-[9px] font-mono tracking-[0.2em] text-zinc-400 uppercase">Edit Mode</span>
+              <button
+                onClick={() => setIsEditMode && setIsEditMode(!isEditMode)}
+                className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border border-white/10 transition-colors duration-200 ease-in-out ${
+                  isEditMode ? 'bg-[#D4CAA3]' : 'bg-zinc-800/40'
+                }`}
+              >
+                <span className={`pointer-events-none inline-block h-[14px] w-[14px] transform rounded-full bg-black transition duration-200 ${isEditMode ? 'translate-x-3.5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+          ) : (
+            /* Silent Fallback for General Public Landing Traffic */
+            <div className="hidden md:flex items-center space-x-1.5 font-sans text-[9px] tracking-widest text-zinc-500 uppercase border border-zinc-800/80 px-3 py-1.5 rounded bg-zinc-950/40 select-none">
+              <span className="w-1 h-1 bg-zinc-600 rounded-full" />
+              <span>Read-Only Ledger</span>
+            </div>
+          )}
 
-          <button
-            onClick={() => setShowCompliance(true)}
-            className="flex items-center gap-3 bg-black/70 backdrop-blur-md px-4 py-2.5 border border-white/10 hover:border-[#D4CAA3]/40 transition-all group trust-glow"
-          >
-            <ReadinessGauge trustScore={readiness} />
-            <ChevronRight className="w-3 h-3 text-zinc-700 group-hover:text-[#D4CAA3] transition-colors" />
-          </button>
+          {hasWriteAccess ? (
+            <button
+              onClick={() => setShowCompliance(true)}
+              className="flex items-center gap-3 bg-black/70 backdrop-blur-md px-4 py-2.5 border border-white/10 hover:border-[#D4CAA3]/40 transition-all group trust-glow"
+            >
+              <ReadinessGauge trustScore={readiness} />
+              <ChevronRight className="w-3 h-3 text-zinc-700 group-hover:text-[#D4CAA3] transition-colors" />
+            </button>
+          ) : (
+            /* If a plain buyer views it, show a clean, sealed network indicator badge */
+            <div className="flex items-center space-x-2 bg-black/70 backdrop-blur-md px-4 py-2.5 border border-white/10 font-mono text-[9px] tracking-[0.2em] text-[#DEFF9A] uppercase select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Sovereign Node Certified</span>
+            </div>
+          )}
         </div>
 
         <div className="ShowroomHeader_bottom absolute bottom-0 left-0 px-8 lg:px-12 flex flex-col gap-8 w-full mt-8 pb-8 border-b border-white/5 z-20">

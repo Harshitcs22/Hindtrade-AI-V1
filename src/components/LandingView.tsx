@@ -22,9 +22,9 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
       <header className="border-b border-white/5 bg-[#0A0A0A]/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-3.5">
-            <img 
-              src="/images/LOGO.png" 
-              alt="Konark Chakra" 
+            <img
+              src="/images/LOGO.png"
+              alt="Konark Chakra"
               className="h-8 w-8 invert brightness-[1.5] contrast-[1.2] sepia-[0.8] hue-rotate-[-10deg] saturate-[1.5] object-contain"
             />
             <div className="font-sans text-xl font-extralight tracking-[0.18em] text-[#F9F6EE]/90">
@@ -57,122 +57,161 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-32 md:py-48 bg-[#0A0A0A] flex items-center justify-center">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <Badge className="bg-transparent text-[#D4CAA3] border border-white/20 mb-8 font-sans tracking-[0.25em] px-4 py-1.5 rounded-none text-[10px] uppercase font-semibold">
-            NEURO-SYMBOLIC · GRI 1–6 ENGINE
-          </Badge>
-          <h1 className="text-6xl md:text-7xl font-serif text-[#F9F6EE] mb-8 leading-[1.1] tracking-tight max-w-4xl mx-auto">
-            The Operating System for Sovereign Trade.
-          </h1>
-          <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-12 leading-relaxed font-sans font-light">
-            HindTrade AI is establishing the digital trust layer for global SMEs. We provide the autonomous solution that secures every shipment with verified documentation, classifications, and eliminates customs liability unifying trust and compliance before your freight moves.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button 
-              onClick={() => router.push('/auth/signup')}
-              className="bg-[#D4CAA3] text-[#0A0A0A] hover:bg-[#c5b992] font-semibold text-base px-10 py-6 rounded-none transition-all hover:scale-[1.02]"
+      {/* Full-Bleed High-Fidelity Master Canvas - Split Axis Operational Layout */}
+      <div className="relative w-full min-h-screen flex flex-col justify-between bg-[#0A0A0A] overflow-hidden select-none px-4 pt-14 md:pt-16 pb-16">
+
+        {/* 1. THE GENUINE UN-DIMMED BACKGROUND LAYER (Locked Coordinates) */}
+        <div
+          className="absolute inset-0 w-full h-full pointer-events-none select-none z-0 opacity-100 transition-all duration-500 filter brightness-100 contrast-100 scale-110 origin-center"
+          style={{
+            backgroundImage: `url('/images/pexels-fatih-turan-63325184-12810604.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: '62% 70%',
+          }}
+        />
+
+        {/* Ambient Vignette Linear Edge Protectors */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/60 via-transparent to-[#0A0A0A]/95 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0A]/20 via-transparent to-[#0A0A0A]/20 z-10 pointer-events-none" />
+
+        {/* 2. FOREGROUND CONTENT: ELEVATED UPPER LAYER ANCHOR (Pulled into Sky Zone) */}
+        <div className="relative z-20 flex flex-col items-center text-center max-w-7xl mx-auto space-y-3.5 w-full">
+
+          {/* Open Luxury Top Banner Element with Kinetic Apple Slide Reveal */}
+          <div className="relative block overflow-hidden py-1">
+            <span
+              className="inline-block uppercase text-[9px] sm:text-[10px] font-semibold text-[#D4CAA3] opacity-0 antialiased tracking-widest drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]"
+              style={{
+                animation: 'appleLuxuryBannerReveal 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                letterSpacing: '0.65em',
+              }}
             >
-              Register With Us
-            </Button>
-            <Link href="/audit-vault" className="border border-[#D4CAA3]/30 hover:border-[#D4CAA3] text-[#D4CAA3] hover:bg-[#D4CAA3]/5 font-semibold text-base px-10 py-4 rounded-none transition-all duration-300 flex items-center justify-center">
-              Access Audit Vault ↗
-            </Link>
+              ABSOLUTE SHIPMENT ACCOUNTABILITY.
+            </span>
           </div>
 
-          {/* Narrative Text */}
-          <div className="mt-16 mb-8 text-center">
-            <p className="text-slate-500 text-sm font-sans mb-2 font-medium">A unified identity layer for SMEs.</p>
-            <p className="text-[#F9F6EE] text-base md:text-lg font-sans font-semibold">Public Visibility. Locked Contacts. Verified Trust.</p>
+          {/* Single Line Luxury Title Heading - Optimized Spacing */}
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight text-white leading-tight whitespace-nowrap drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+            Trade Trust Operating System.
+          </h1>
+
+          {/* Premium Thin Axis Vector Accent Split Line */}
+          <div className="w-20 h-[1px] bg-gradient-to-r from-transparent via-[#D4CAA3]/50 to-transparent mt-0.5" />
+        </div>
+
+
+        {/* 3. FOREGROUND CONTENT: LOWER LAYER ANCHOR (Shifted Down Onto Sea Layer) */}
+        <div className="relative z-20 flex flex-col items-center text-center max-w-5xl mx-auto space-y-6 w-full mt-auto">
+
+          {/* Institutional Procurement Descriptive Summary Block - Overlaying Sea */}
+          <p className="font-sans text-xs md:text-sm tracking-[0.2em] text-zinc-200 max-w-4xl mx-auto leading-[2.2] uppercase font-light drop-shadow-[0_2px_14px_rgba(0,0,0,1)]">
+            The institutional verified layer connecting <span className="text-white font-medium">Indian manufacturing</span> with global trade through verification, compliance, and traceable commerce—creating absolute execution ease for domestic and global buyers alike.
+          </p>
+
+          {/* Luxury Action Button Stack - Clean Base Foundation */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+            <button
+              onClick={() => router.push('/auth/signup')}
+              className="px-8 py-3.5 bg-white text-black font-sans text-[10px] tracking-[0.25em] font-bold uppercase hover:bg-[#D4CAA3] transition-all duration-300 rounded-none"
+            >
+              EXPLORE DIGITAL SHOWROOM
+            </button>
+            <button
+              onClick={() => router.push('/audit-vault')}
+              className="px-8 py-3.5 bg-zinc-950/90 text-zinc-400 border border-white/10 font-sans text-[10px] tracking-[0.25em] font-bold uppercase hover:text-white hover:border-white transition-all duration-300 rounded-none backdrop-blur-md"
+            >
+              LAUNCH GRI AUDIT ENGINE
+            </button>
           </div>
 
+        </div>
 
-          {/* Premium Trade Card Component */}
-          <div className="relative w-full max-w-2xl mx-auto bg-gradient-to-br from-[#1a1a1a] via-[#050505] to-[#000000] border border-white/10 rounded-2xl py-6 px-8 md:px-10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] overflow-hidden group text-left">
+        {/* Embedded High-Fidelity Kinetic Keyframe Core Engines */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          @keyframes appleLuxuryBannerReveal {
+            0% {
+              opacity: 0;
+              transform: translate3d(0, 30px, 0);
+              filter: blur(3px);
+            }
+            100% {
+              opacity: 1;
+              transform: translate3d(0, 0, 0);
+              filter: blur(0);
+            }
+          }
+        `}} />
+      </div>
 
-            {/* Luxury Metallic Glare Effect (Visible on hover) */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+      {/* Hardened B2B Showcase Identity Layer - Fully Isolated from Hero Backdrop */}
+      <section className="relative bg-[#0A0A0A] py-16 flex items-center justify-center">
+        <div className="w-full max-w-3xl mx-auto px-6">
+          <div className="relative w-full bg-zinc-950/80 border border-white/5 p-8 backdrop-blur-md rounded-none shadow-2xl">
 
-            {/* Card Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                {/* Sleeker Logo Box */}
-                <div className="w-6 h-6 bg-gradient-to-br from-[#D4CAA3] to-[#8C825A] text-[#0A0A0A] flex items-center justify-center font-serif text-xs font-bold rounded-[4px] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
-                  H
-                </div>
-                <div className="flex items-center space-x-2">
-                  {/* Fixed: Ultra-thin, tracked out font instead of bold */}
-                  <span className="text-zinc-400 text-[9px] font-sans tracking-[0.2em] font-normal uppercase">
-                    VERIFIED EXPORTER
-                  </span>
-                  <span className="flex items-center text-emerald-500/80 text-[7px] font-sans tracking-widest font-medium uppercase">
-                    <span className="w-1 h-1 bg-emerald-500 rounded-full mr-1.5 animate-pulse shadow-[0_0_4px_#10b981]"></span>
-                    LIVE
-                  </span>
-                </div>
+            {/* Top Badge Framework */}
+            <div className="flex justify-between items-center border-b border-white/[0.03] pb-4 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
+                <span className="font-sans text-[9px] tracking-[0.2em] text-zinc-400 uppercase font-bold">
+                  VERIFIED EXPORTER • LIVE
+                </span>
               </div>
-              <div className="text-zinc-600 font-sans text-[9px] font-normal tracking-[0.2em] uppercase">IN</div>
+              <span className="font-mono text-[9px] text-zinc-600 tracking-widest uppercase">IN</span>
             </div>
 
-            {/* Title - Ultra Luxury Spacing */}
-            <div className="text-center mt-2 mb-4">
-              <h2 className="text-xl md:text-[22px] font-sans font-light tracking-[0.3em] text-white/95 uppercase">
-                HIMROCK EXPORTS
+            {/* Main Entity Title Anchor */}
+            <div className="text-center space-y-1 mb-8">
+              <h2 className="font-serif text-3xl md:text-4xl tracking-[0.15em] text-white uppercase font-normal selection:bg-[#D4CAA3]/20">
+                AKSHAY SPORTS
               </h2>
-              <div className="text-[#D4CAA3]/70 text-[8px] tracking-[0.3em] font-sans mt-2">
+              <span className="font-sans text-[9px] tracking-[0.3em] text-zinc-500 uppercase font-medium">
                 EST. 1980
-              </div>
-            </div>
-
-            {/* Business Profile - Dense & Sleek */}
-            <div className="border-y border-white/5 py-3 mb-4 font-sans text-[10px] font-light tracking-widest flex flex-col gap-2 px-1">
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-500 uppercase text-[8px]">DEALS IN</span>
-                <span className="text-zinc-300 font-normal text-right">Sports Goods, Premium Leather</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-500 uppercase text-[8px]">MARKETS</span>
-                <span className="text-zinc-300 font-normal text-right">USA, United Kingdom, UAE</span>
-              </div>
-            </div>
-
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-3 gap-2 text-center mb-4">
-              <div>
-                <div className="text-zinc-500 text-[8px] tracking-[0.2em] uppercase mb-1 font-sans">SHIPMENTS</div>
-                <div className="text-white/90 text-sm md:text-base font-sans font-medium">120+</div>
-              </div>
-              <div>
-                <div className="text-zinc-500 text-[8px] tracking-[0.2em] uppercase mb-1 font-sans">EXPERIENCE</div>
-                <div className="text-white/90 text-sm md:text-base font-sans font-medium">12 Yrs</div>
-              </div>
-              <div>
-                <div className="text-zinc-500 text-[8px] tracking-[0.2em] uppercase mb-1 font-sans">NET WORTH</div>
-                <div className="text-[#D4CAA3] text-sm md:text-base font-sans font-medium">₹12 Cr</div>
-              </div>
-            </div>
-
-            {/* Pill Badges - Thinner borders, smaller text */}
-            <div className="flex flex-wrap justify-center gap-2 mb-5">
-              <span className="bg-white/[0.02] text-zinc-400 border border-white/10 px-3 py-1 text-[7px] font-sans tracking-[0.2em] uppercase font-light rounded-full">
-                GST REGISTERED
-              </span>
-              <span className="bg-white/[0.02] text-zinc-400 border border-white/10 px-3 py-1 text-[7px] font-sans tracking-[0.2em] uppercase font-light rounded-full">
-                IEC HOLDER
               </span>
             </div>
 
-            {/* Footer & CTA */}
-            <div className="flex items-center justify-between pt-5 border-t border-white/5">
-              <div className="text-zinc-500 text-[8px] font-sans tracking-[0.15em] uppercase">
-                UDIN: 24059182AABCV1928 <span className="mx-1 text-zinc-700">|</span> <span className="text-[#D4CAA3]/90 font-normal">VERIFIED</span>
+            {/* Technical Profile Ledger Matrix Rows */}
+            <div className="grid grid-cols-2 gap-x-12 gap-y-6 text-left mb-8 max-w-xl mx-auto">
+              <div>
+                <span className="block font-sans text-[8px] text-zinc-500 tracking-wider uppercase mb-0.5">DEALS IN</span>
+                <span className="font-sans text-xs text-zinc-300 font-medium tracking-wide">Sports Goods, Premium Leather, Athletic Gear</span>
               </div>
-              <button className="bg-[#F9F6EE] text-[#0A0A0A] hover:bg-white font-sans font-medium text-[10px] tracking-widest uppercase px-5 py-2.5 rounded-sm transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(212,202,163,0.15)]">
-                Talk to AI <span className="text-lg leading-none mt-[-2px]">✦</span>
+              <div>
+                <span className="block font-sans text-[8px] text-zinc-500 tracking-wider uppercase mb-0.5">MARKETS</span>
+                <span className="font-sans text-xs text-zinc-300 font-medium tracking-wide">USA, United Kingdom, UAE, Australia</span>
+              </div>
+            </div>
+
+            {/* Quantizable Operational Telemetry Stats */}
+            <div className="grid grid-cols-3 gap-4 border-t border-b border-white/[0.03] py-6 my-6 text-center max-w-xl mx-auto">
+              <div>
+                <span className="block font-sans text-[8px] text-zinc-500 tracking-widest uppercase mb-1">SHIPMENTS</span>
+                <span className="font-serif text-xl text-white">120+</span>
+              </div>
+              <div>
+                <span className="block font-sans text-[8px] text-zinc-500 tracking-widest uppercase mb-1">EXPERIENCE</span>
+                <span className="font-serif text-xl text-white">12 Yrs</span>
+              </div>
+              <div>
+                <span className="block font-sans text-[8px] text-zinc-500 tracking-widest uppercase mb-1">NET WORTH</span>
+                <span className="font-serif text-xl text-[#D4CAA3]">₹12 Cr</span>
+              </div>
+            </div>
+
+            {/* Primary Action Button Refactor: View Profile Transition */}
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={onViewDashboard}
+                className="flex items-center gap-2 px-8 py-3 bg-white text-black font-sans text-[10px] tracking-[0.25em] font-bold uppercase hover:bg-[#D4CAA3] transition-all duration-300 group rounded-none"
+              >
+                <span>VIEW PROFILE</span>
+                <span className="text-[8px] transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">
+                  ↗
+                </span>
               </button>
             </div>
+
           </div>
         </div>
       </section>
@@ -322,7 +361,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
       <section className="py-20 md:py-32 bg-[#0A0A0A] relative overflow-hidden flex flex-col items-center justify-center border-b border-white/5">
         {/* Subtle glowing orb in the center background */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-64 bg-[#D4CAA3]/5 blur-[100px] pointer-events-none rounded-full"></div>
-        
+
         <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
           <h2 className="text-4xl md:text-5xl lg:text-5xl font-serif text-[#F9F6EE] mb-8 leading-tight tracking-tight">
             Engineered to save time, reduce manual workforce, and build the verifiable digital trust global buyers demand.
@@ -339,7 +378,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
 
       {/* Feature 1: Autonomous Trade Card & Agent Network (Replacing old Digital Trust Layer) */}
       <section className="py-24 md:py-32 max-w-7xl mx-auto px-6 border-b border-white/5">
-        
+
         {/* Top Copy Section */}
         <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24">
           <div className="text-[10px] tracking-[0.2em] font-sans text-[#D4CAA3] mb-4 uppercase font-medium">The End of Unverified Leads</div>
@@ -353,7 +392,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
 
         {/* Bottom Split: Real Screenshots */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Panel: The Profile & Timeline Image */}
           <div className="lg:col-span-7 relative group">
             <div className="absolute inset-0 bg-[#D4CAA3]/5 blur-2xl rounded-xl scale-95 pointer-events-none transition-opacity duration-500 opacity-50 group-hover:opacity-100"></div>
@@ -364,9 +403,9 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
                 <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                 <span className="ml-2 text-xs text-zinc-500 font-sans tracking-wider">trade-card-jalandhar-sports</span>
               </div>
-              <img 
-                src="/images/profile-view.png" 
-                alt="Verified Supplier Profile and AI Agent" 
+              <img
+                src="/images/profile-view.png"
+                alt="Verified Supplier Profile and AI Agent"
                 className="w-full h-auto object-cover opacity-95 group-hover:opacity-100 transition-opacity"
               />
             </div>
@@ -375,13 +414,13 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           {/* Right Panel: The Catalog Image & Context */}
           <div className="lg:col-span-5 flex flex-col gap-8">
             <div className="relative border border-white/10 rounded-xl overflow-hidden shadow-xl shadow-black/60 bg-[#0A0A0A] transform transition-transform hover:-translate-y-1">
-              <img 
-                src="/images/catalog-view.png" 
-                alt="Ingested Catalog and HSN Mapping" 
+              <img
+                src="/images/catalog-view.png"
+                alt="Ingested Catalog and HSN Mapping"
                 className="w-full h-auto object-cover opacity-90"
               />
             </div>
-            
+
             {/* Explanation Cards */}
             <div className="space-y-4">
               <div className="bg-[#111111] border-l-2 border-[#D4CAA3] p-5 rounded-r-lg">
@@ -568,7 +607,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#D4CAA3]/50 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 relative z-10">
-              
+
               {/* Left Side: Copy */}
               <div className="flex-1">
                 <div className="text-[10px] tracking-[0.2em] font-sans text-[#D4CAA3] mb-4 uppercase font-medium">Expert Hub & Digital Acceleration</div>
@@ -617,7 +656,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
       <footer className="bg-[#0A0A0A] border-t border-white/5 relative overflow-hidden">
         {/* Decorative Background Elements */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#D4CAA3]/5 blur-[120px] rounded-t-full pointer-events-none"></div>
-        
+
         {/* Main CTA Block */}
         <div className="max-w-6xl mx-auto px-6 pt-32 pb-24 text-center relative z-10">
           <div className="inline-block border border-[#D4CAA3]/30 px-4 py-1.5 rounded-full text-[10px] tracking-[0.2em] font-sans text-[#D4CAA3] mb-6 uppercase font-light bg-[#D4CAA3]/5">FOUNDING COHORT NOW OPEN</div>
@@ -627,9 +666,9 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
           <p className="text-slate-400 text-sm md:text-base leading-relaxed font-sans font-light max-w-2xl mx-auto mb-10">
             We are onboarding the first 20 elite exporters to define the new standard of Indian trade. Founding members receive lifetime fee protection and priority Agent Ekayan deployment. Public access waitlist begins Q4 2026.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <button 
+            <button
               onClick={() => setIsModalOpen(true)}
               className="bg-[#F9F6EE] text-[#0A0A0A] hover:bg-white font-sans font-medium text-sm tracking-[0.1em] uppercase px-10 py-5 rounded-sm transition-all shadow-[0_0_20px_rgba(212,202,163,0.15)] hover:scale-[1.02]"
             >
@@ -679,7 +718,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
                 exit={{ scale: 0.95, opacity: 0 }}
                 className="bg-[#000000] border border-[#DEFF9A]/20 p-8 md:p-10 max-w-lg w-full relative shadow-[0_0_50px_rgba(222,255,154,0.05)]"
               >
-                <button 
+                <button
                   onClick={() => {
                     setIsModalOpen(false);
                     setIsSubmitted(false);
@@ -698,7 +737,7 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
                       Join the elite 20 exporters defining the new standard of Indian Trade.
                     </p>
 
-                    <form 
+                    <form
                       onSubmit={(e) => {
                         e.preventDefault();
                         setIsSubmitting(true);
@@ -711,8 +750,8 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
                     >
                       <div className="flex flex-col">
                         <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Full Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors"
                         />
@@ -720,8 +759,8 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
 
                       <div className="flex flex-col">
                         <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Organization / MSME Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors"
                         />
@@ -729,8 +768,8 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
 
                       <div className="flex flex-col">
                         <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Professional Email</label>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           required
                           className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors"
                         />
@@ -738,8 +777,8 @@ export default function LandingView({ onViewDashboard }: { onViewDashboard: () =
 
                       <div className="flex flex-col">
                         <label className="text-[10px] font-sans font-bold tracking-[0.2em] text-zinc-500 uppercase mb-2">Primary Export Category</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           placeholder="e.g., Sports Goods, Textiles"
                           className="bg-transparent border-b border-zinc-800 text-[#F9F6EE] font-sans text-sm pb-2 outline-none focus:border-[#DEFF9A] transition-colors placeholder-zinc-700"

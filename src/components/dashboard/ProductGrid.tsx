@@ -1,15 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductCard } from "./ProductCard";
 import { useProductStore } from "@/lib/store";
+import { HsnAuditVaultModal } from "./HsnAuditVaultModal";
 
-export function ProductGrid({ onManage }: { onManage?: () => void }) {
-  const { firmDetails, setActiveProduct, isEditMode } = useProductStore();
+export function ProductGrid({ onManage, onEditInit }: { onManage?: () => void; onEditInit?: (product: any) => void }) {
+  const { firmDetails, setActiveProduct, isEditMode, inventory, fetchProducts } = useProductStore();
   
-  // Bind directly to firmDetails.products or fallback to empty array
-  const products = firmDetails.products || [];
+  // Local state to manage HSN Audit visual ledger modal
+  const [selectedAuditProduct, setSelectedAuditProduct] = useState<any | null>(null);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (firmDetails?.id) {
+      fetchProducts(firmDetails.id);
+    }
+  }, [firmDetails?.id, fetchProducts]);
+
+  // Bind directly to inventory or fallback to firmDetails.products
+  const products = inventory && inventory.length > 0 ? inventory : (firmDetails.products || []);
   const isEmpty = !products || products.length === 0;
 
   return (
@@ -71,12 +82,27 @@ export function ProductGrid({ onManage }: { onManage?: () => void }) {
                 <ProductCard
                   product={product}
                   onClickAudit={() => setActiveProduct(product.id)}
+                  onSeeHsnAudit={(prod) => {
+                    setSelectedAuditProduct(prod);
+                    setIsAuditModalOpen(true);
+                  }}
+                  onEditInit={onEditInit}
                 />
               </motion.div>
             ))}
           </div>
         </AnimatePresence>
       )}
+
+      {/* ── HSN AUDIT VAULT MODAL ────────────────────────────────────────── */}
+      <HsnAuditVaultModal
+        isOpen={isAuditModalOpen}
+        onClose={() => {
+          setIsAuditModalOpen(false);
+          setSelectedAuditProduct(null);
+        }}
+        product={selectedAuditProduct}
+      />
     </section>
   );
 }
